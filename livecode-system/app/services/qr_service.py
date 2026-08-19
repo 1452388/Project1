@@ -27,12 +27,26 @@ class QRService:
     @staticmethod
     def _load_font(size: int) -> ImageFont.FreeTypeFont | ImageFont.ImageFont:
         """加载中文字体；找不到时退回默认字体。"""
-        # Windows 常见中文字体路径
-        candidates = [
-            Path("C:/Windows/Fonts/msyh.ttc"),      # 微软雅黑
-            Path("C:/Windows/Fonts/simhei.ttf"),    # 黑体
-            Path("C:/Windows/Fonts/simsun.ttc"),    # 宋体
-        ]
+        import platform
+        system = platform.system()
+        # 跨平台字体路径
+        if system == "Windows":
+            candidates = [
+                Path("C:/Windows/Fonts/msyh.ttc"),      # 微软雅黑
+                Path("C:/Windows/Fonts/simhei.ttf"),    # 黑体
+                Path("C:/Windows/Fonts/simsun.ttc"),    # 宋体
+            ]
+        elif system == "Darwin":  # macOS
+            candidates = [
+                Path("/System/Library/Fonts/STHeiti Light.ttc"),
+                Path("/System/Library/Fonts/PingFang.ttc"),
+            ]
+        else:  # Linux / Vercel
+            candidates = [
+                Path("/usr/share/fonts/truetype/noto/NotoSansCJK-Regular.ttc"),
+                Path("/usr/share/fonts/truetype/wqy/wqy-zenhei.ttc"),
+                Path("/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc"),
+            ]
         for font_path in candidates:
             if font_path.exists():
                 try:

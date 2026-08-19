@@ -4,7 +4,7 @@
 from pathlib import Path
 
 from fastapi import Depends, FastAPI, Request
-from fastapi.responses import HTMLResponse
+from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from sqladmin import Admin
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -61,6 +61,12 @@ app.include_router(project_pages_router, prefix="/manage")
 # ── 后台专用项目编辑页（不对前端网站开放）──
 from app.api.project_admin_pages import router as project_admin_pages_router
 app.include_router(project_admin_pages_router)
+
+
+@app.get("/c8c163e6d638ce7ef2a6c0dc13b1ebc8.txt", include_in_schema=False)
+async def domain_verification_file():
+    """提供域名验证文件。"""
+    return FileResponse("c8c163e6d638ce7ef2a6c0dc13b1ebc8.txt", media_type="text/plain")
 
 
 @app.get("/", response_class=HTMLResponse)

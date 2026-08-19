@@ -98,6 +98,7 @@ async def register(
         raise HTTPException(status_code=400, detail="用户名已存在")
     # 创建用户
     user = await auth_service.register_user(data.username, data.password)
+    await session.commit()
     return {"message": "注册成功", "user_id": user.id}
 
 

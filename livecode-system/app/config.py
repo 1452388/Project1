@@ -59,7 +59,7 @@ class Settings(BaseSettings):
     R2_PUBLIC_URL: str = ""  # 自定义域名，如 https://cdn.example.com
 
     # --- 站点 ---
-    BASE_URL: str = "http://localhost:8000"
+    BASE_URL: str = "https://www.hxy820.uno"
 
     # --- 二维码默认配置 ---
     QR_DEFAULT_SIZE: str = "medium"

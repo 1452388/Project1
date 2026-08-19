@@ -10,6 +10,7 @@
 
 import os
 from pathlib import Path
+from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -18,6 +19,30 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # 判断是否在 Vercel 等只读环境
 IS_SERVERLESS = os.environ.get("VERCEL", "") != ""
+
+
+def normalize_database_url(value: str) -> tuple[str, bool]:
+    """兼容 Neon/Supabase 提供的 PostgreSQL 连接串。"""
+    if value.startswith("postgres://"):
+        value = "postgresql+asyncpg://" + value[len("postgres://"):]
+    elif value.startswith("postgresql://"):
+        value = "postgresql+asyncpg://" + value[len("postgresql://"):]
+
+    parts = urlsplit(value)
+    if parts.scheme != "postgresql+asyncpg":
+        return value, False
+
+    query = dict(parse_qsl(parts.query, keep_blank_values=True))
+    sslmode = query.pop("sslmode", "")
+    query.pop("channel_binding", None)
+    normalized = urlunsplit((
+        parts.scheme,
+        parts.netloc,
+        parts.path,
+        urlencode(query),
+        parts.fragment,
+    ))
+    return normalized, sslmode not in ("", "disable", "allow", "prefer")
 
 
 class Settings(BaseSettings):
@@ -39,6 +64,7 @@ class Settings(BaseSettings):
     DATABASE_URL: str = (
         f"sqlite+aiosqlite:///{(BASE_DIR / 'data' / 'livecode.db').as_posix()}"
     )
+    DATABASE_SSL: bool = False
 
     # --- 存储后端：local / r2 ---
     STORAGE_BACKEND: str = "local"
@@ -82,6 +108,7 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
+settings.DATABASE_URL, settings.DATABASE_SSL = normalize_database_url(settings.DATABASE_URL)
 
 # Vercel 的项目目录是只读的，SQLite 无法用于生产写入。
 if IS_SERVERLESS and settings.DATABASE_URL.startswith("sqlite"):

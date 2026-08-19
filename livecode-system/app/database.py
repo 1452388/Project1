@@ -15,6 +15,7 @@ engine = create_async_engine(
     settings.DATABASE_URL,
     echo=False,
     future=True,
+    connect_args={"ssl": True} if settings.DATABASE_SSL else {},
     # PostgreSQL 连接池参数
     **(
         {"pool_size": 5, "max_overflow": 10}

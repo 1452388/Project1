@@ -1,0 +1,432 @@
+{% extends "base.html" %}
+{% block title %}首页 - 活码管理系统{% endblock %}
+
+{% block extra_css %}
+<style>
+    body { background: linear-gradient(-45deg, #0f0c29, #302b63, #24243e, #0f0c29); background-size: 400% 400%; animation: gradient 15s ease infinite; }
+    @keyframes gradient { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+
+    /* 首页与人员管理页面保持一致的简洁视觉。 */
+    body {
+        background: #ffffff;
+        color: #1a1a1a;
+        font-family: "Noto Sans SC", "PingFang SC", sans-serif;
+        line-height: 1.6;
+    }
+    .bg-decoration { display: none; }
+    .glass, .glass-strong, .stat-card {
+        background: #ffffff;
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+        border: 1px solid #e5e5e5;
+        box-shadow: none;
+    }
+    nav.glass-strong { border-top: 0; border-left: 0; border-right: 0; }
+    .text-white, .text-white\/70, .text-white\/60 { color: #1a1a1a !important; }
+    .text-transparent {
+        color: #1a1a1a !important;
+        background-image: none !important;
+        -webkit-background-clip: initial !important;
+        background-clip: initial !important;
+    }
+    .bg-white\/10, .hover\:bg-white\/10:hover { background: #f8f9fa !important; }
+    .btn-primary {
+        background: #1a1a1a !important;
+        color: #ffffff !important;
+        box-shadow: none !important;
+    }
+    .btn-primary:hover { background: #333333 !important; transform: none; }
+    .btn-secondary {
+        background: transparent !important;
+        border: 1px solid #e5e5e5 !important;
+        color: #1a1a1a !important;
+    }
+    .btn-secondary:hover { background: #f8f9fa !important; border-color: #1a1a1a !important; }
+    .card-hover:hover { transform: none; box-shadow: none; background: #f8f9fa; }
+    .rounded-xl, .rounded-2xl { border-radius: 8px !important; }
+    .border-white\/10 { border-color: #e5e5e5 !important; }
+    .text-brand-400, .text-cyan-400, .text-blue-400, .text-green-400,
+    .text-purple-400, .hover\:text-brand-400:hover, .hover\:text-cyan-400:hover {
+        color: #666666 !important;
+    }
+    .bg-gradient-to-br, .bg-gradient-to-r { background-image: none !important; }
+    footer.glass-strong { background: #ffffff; }
+    .home-nav-item { position: relative; }
+    .home-nav-trigger { display: inline-flex; align-items: center; gap: 6px; }
+    .home-nav-trigger::after {
+        content: "";
+        width: 6px;
+        height: 6px;
+        border-right: 1px solid currentColor;
+        border-bottom: 1px solid currentColor;
+        transform: rotate(45deg) translateY(-2px);
+        transition: transform 0.2s ease;
+    }
+    .home-nav-menu {
+        position: absolute;
+        top: calc(100% + 8px);
+        left: 0;
+        min-width: 150px;
+        padding: 6px;
+        background: #ffffff;
+        border: 1px solid #e5e5e5;
+        border-radius: 8px;
+        box-shadow: 0 12px 28px rgba(0, 0, 0, 0.08);
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(-6px);
+        transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s ease;
+        z-index: 20;
+    }
+    .home-nav-item:hover .home-nav-menu,
+    .home-nav-item:focus-within .home-nav-menu {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+    }
+    .home-nav-item:hover .home-nav-trigger::after,
+    .home-nav-item:focus-within .home-nav-trigger::after { transform: rotate(225deg) translate(-1px, -1px); }
+    .home-nav-menu a {
+        display: block;
+        padding: 9px 12px;
+        border-radius: 6px;
+        color: #666666 !important;
+        font-size: 14px;
+        white-space: nowrap;
+    }
+    .home-nav-menu a:hover, .home-nav-menu a:focus {
+        background: #f8f9fa;
+        color: #1a1a1a !important;
+        outline: none;
+    }
+    .workspace-section { padding-bottom: 64px; }
+    .workspace-heading { margin-bottom: 24px; }
+    .workspace-heading h2 { margin-bottom: 6px; }
+    .workspace-heading p { color: #666666; font-size: 14px; }
+    .workspace-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .workspace-card { display: block; padding: 24px; border: 1px solid #e5e5e5; border-radius: 8px; background: #ffffff; transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease; }
+    .workspace-card:hover, .workspace-card:focus { background: #f8f9fa; border-color: #1a1a1a; transform: translateY(-2px); outline: none; }
+    .workspace-card strong { display: block; margin-bottom: 6px; font-size: 16px; }
+    .workspace-card span { color: #666666; font-size: 13px; }
+    .workspace-mark { display: inline-flex; width: 32px; height: 32px; align-items: center; justify-content: center; margin-bottom: 16px; border: 1px solid #e5e5e5; border-radius: 6px; color: #1a1a1a; font-size: 14px; }
+    @media (max-width: 767px) {
+        .home-nav-menu { left: auto; right: 0; }
+        .workspace-grid { grid-template-columns: 1fr; }
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="min-h-screen text-white">
+    <!-- 背景装饰 -->
+    <div class="bg-decoration">
+        <div class="circle c1"></div>
+        <div class="circle c2"></div>
+        <div class="circle c3"></div>
+    </div>
+
+    <!-- 导航栏 -->
+    <nav class="glass-strong sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-8">
+                    <a href="/" class="flex items-center gap-3">
+                        <div class="w-10 h-10 bg-gradient-to-br from-brand-500 to-cyan-500 rounded-xl flex items-center justify-center shadow-lg">
+                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11H8m4 0v1m8-8h-1m-5.5 4.5l-5.5 5.5-3-3L2 9m16.5-2L20 4"/>
+                            </svg>
+                        </div>
+                        <span class="text-xl font-bold text-white">活码管理系统</span>
+                    </a>
+                    <!-- 导航链接 -->
+                    <div class="hidden md:flex items-center gap-1" id="navLinks">
+                        <a href="/" class="nav-link px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 text-white bg-white/10" data-section="home">首页</a>
+                        <a href="#features" class="nav-link px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 text-white/70 hover:text-white hover:bg-white/10" data-section="features">功能特性</a>
+                        <div class="home-nav-item">
+                            <a href="#about" class="home-nav-trigger nav-link px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 text-white/70 hover:text-white hover:bg-white/10" data-section="about" aria-haspopup="true">工程相关</a>
+                            <div class="home-nav-menu" role="menu">
+                                <a href="/manage/team" role="menuitem">人员信息</a>
+                                <a href="{{ '/manage/projects' if principal and principal.role != 'guest' else '/auth/login?next=/manage/projects' }}" role="menuitem">项目管理</a>
+                            </div>
+                        </div>
+                        <a href="/report" class="nav-link px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 text-white/70 hover:text-white hover:bg-white/10" data-section="report">错误汇报</a>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3">
+                    {% if principal %}
+                    <span class="text-sm font-medium">{{ principal.username or '游客' }}</span>
+                    <button type="button" onclick="logout()" class="btn-secondary px-4 py-2 rounded-lg text-sm font-medium">退出</button>
+                    {% else %}
+                    <a href="/auth/login" class="btn-secondary px-4 py-2 rounded-lg text-sm font-medium text-white">登录</a>
+                    <a href="/auth/register" class="btn-primary px-4 py-2 rounded-lg text-sm font-medium text-white">注册</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero 区域 -->
+    <header id="home" class="max-w-6xl mx-auto px-6 py-16 sm:py-24 relative z-10">
+        <div class="text-center">
+            <div class="inline-flex items-center gap-2 glass px-4 py-1.5 rounded-full text-sm font-medium mb-6">
+                <span class="w-2 h-2 bg-cyan-400 rounded-full animate-pulse"></span>
+                新一代活码管理系统
+            </div>
+            <h1 class="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
+                固定二维码，<br>
+                <span class="text-transparent bg-clip-text bg-gradient-to-r from-brand-400 to-cyan-400">内容随时可改</span>
+            </h1>
+            <p class="text-lg sm:text-xl text-white/70 max-w-2xl mx-auto mb-8">
+                生成可编辑内容的二维码，印到物料上后永不改版，后台随时更新内容
+            </p>
+            <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+                <a href="/auth/register" class="btn-primary px-8 py-3 rounded-xl font-medium text-white shadow-lg">
+                    立即开始
+                </a>
+                <a href="/auth/login" class="btn-secondary px-8 py-3 rounded-xl font-medium text-white">
+                    已有账号？登录
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- 工作台入口 -->
+    <section class="workspace-section max-w-6xl mx-auto px-6 relative z-10">
+        <div class="workspace-heading">
+            <h2 class="text-2xl font-bold">工作台</h2>
+            <p>从这里快速进入常用管理页面</p>
+        </div>
+        <div class="workspace-grid">
+            <a href="/manage/team" class="workspace-card">
+                <span class="workspace-mark">人</span>
+                <strong>人员信息</strong>
+                <span>查看成员资料和名片信息</span>
+            </a>
+            <a href="{{ '/manage/projects' if principal and principal.role != 'guest' else '/auth/login?next=/manage/projects' }}" class="workspace-card">
+                <span class="workspace-mark">项</span>
+                <strong>项目管理</strong>
+                <span>查看和维护项目文档</span>
+            </a>
+            <a href="/admin" class="workspace-card">
+                <span class="workspace-mark">管</span>
+                <strong>后台管理</strong>
+                <span>管理文章、活码和系统数据</span>
+            </a>
+        </div>
+    </section>
+
+    <!-- 功能特性 -->
+    <section id="features" class="max-w-6xl mx-auto px-6 pb-16 relative z-10">
+        <div class="text-center mb-12">
+            <h2 class="text-2xl sm:text-3xl font-bold text-white mb-4">功能特性</h2>
+            <p class="text-white/60">一站式活码管理解决方案</p>
+        </div>
+        <div class="grid md:grid-cols-3 gap-6">
+            <div class="glass-strong rounded-2xl p-8 card-hover">
+                <div class="w-14 h-14 bg-gradient-to-br from-blue-500/20 to-blue-600/20 rounded-xl flex items-center justify-center mb-6">
+                    <svg class="w-7 h-7 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                </div>
+                <h3 class="text-lg font-semibold text-white mb-2">创建内容</h3>
+                <p class="text-white/60">撰写文章，插入图片，打造丰富内容展示页</p>
+            </div>
+
+            <div class="glass-strong rounded-2xl p-8 card-hover">
+                <div class="w-14 h-14 bg-gradient-to-br from-green-500/20 to-green-600/20 rounded-xl flex items-center justify-center mb-6">
+                    <svg class="w-7 h-7 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4a1 1 0 011 1v1a1 1 0 01-2 0V5a1 1 0 011-1zm3.5-1.5a1 1 0 01.5 1.88l-1.5 1.5a1 1 0 01-1.414-1.414l1.5-1.5a1 1 0 011.88.5zM20 11a1 1 0 01-1 1h-1a1 1 0 010-2h1a1 1 0 011 1zm-3.5 5.5a1 1 0 01-1.414 0l-1.5-1.5a1 1 0 011.414-1.414l1.5 1.5a1 1 0 010 1.414zM4 11a1 1 0 011-1h1a1 1 0 010 2H5a1 1 0 01-1-1zm3.5-5.5a1 1 0 010 1.414l-1.5 1.5a1 1 0 01-1.414-1.414l1.5-1.5a1 1 0 011.414 0zM12 4a8 8 0 100 16 8 8 0 000-16z"/>
+                    </svg>
+                </div>
+                <h3 class="text-lg font-semibold text-white mb-2">生成活码</h3>
+                <p class="text-white/60">为文章生成二维码，可自定义样式和边框文字</p>
+            </div>
+
+            <div class="glass-strong rounded-2xl p-8 card-hover">
+                <div class="w-14 h-14 bg-gradient-to-br from-purple-500/20 to-purple-600/20 rounded-xl flex items-center justify-center mb-6">
+                    <svg class="w-7 h-7 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                    </svg>
+                </div>
+                <h3 class="text-lg font-semibold text-white mb-2">数据追踪</h3>
+                <p class="text-white/60">实时统计扫码数据，按天趋势分析，支持导出</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- 统计数据 -->
+    <section class="max-w-6xl mx-auto px-6 pb-16 relative z-10">
+        <div class="glass-strong rounded-2xl p-8 sm:p-12">
+            <div class="grid md:grid-cols-3 gap-8 text-center">
+                <div class="stat-card rounded-xl p-6">
+                    <div class="text-4xl sm:text-5xl font-bold mb-2 text-transparent bg-clip-text bg-gradient-to-r from-brand-400 to-cyan-400">{{ "{:,}".format(stats.live_code_count) }}</div>
+                    <div class="text-white/60">活码已生成</div>
+                </div>
+                <div class="stat-card rounded-xl p-6">
+                    <div class="text-4xl sm:text-5xl font-bold mb-2 text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-400">{{ "{:,}".format(stats.total_scan_count) }}</div>
+                    <div class="text-white/60">次扫码记录</div>
+                </div>
+                <div class="stat-card rounded-xl p-6">
+                    <div class="text-4xl sm:text-5xl font-bold mb-2 text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">{{ "{:.1f}%".format(stats.availability_rate) }}</div>
+                    <div class="text-white/60">系统可用率</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA 区域 -->
+    <section class="max-w-6xl mx-auto px-6 pb-16 relative z-10">
+        <div class="glass-strong rounded-2xl p-8 sm:p-12 text-center">
+            <h2 class="text-2xl sm:text-3xl font-bold text-white mb-4">准备好开始了吗？</h2>
+            <p class="text-white/60 mb-8 max-w-2xl mx-auto">
+                注册账号，立即创建你的第一个活码，让内容更灵活，让分享更简单
+            </p>
+            <a href="/auth/register" class="inline-flex items-center gap-2 btn-primary px-8 py-3 rounded-xl font-medium text-white shadow-lg">
+                免费注册
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+                </svg>
+            </a>
+        </div>
+    </section>
+
+    <!-- 工程相关 -->
+    <section id="about" class="max-w-6xl mx-auto px-6 pb-16 relative z-10">
+        <div class="glass-strong rounded-2xl p-8 sm:p-12">
+            <h2 class="text-2xl font-bold text-white mb-6">工程相关</h2>
+            <div class="grid md:grid-cols-2 gap-6">
+                <a href="{{ '/manage/projects' if principal and principal.role != 'guest' else '/auth/login?next=/manage/projects' }}" class="glass rounded-xl p-6 card-hover group">
+                    <div class="flex items-start gap-4">
+                        <div class="w-10 h-10 bg-brand-500/20 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:bg-brand-500/30 transition-colors">
+                            <svg class="w-5 h-5 text-brand-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="font-semibold text-white group-hover:text-brand-400 transition-colors">项目管理</h3>
+                            <p class="text-sm text-white/60 mt-1">管理项目文档，支持富文本编辑</p>
+                        </div>
+                    </div>
+                </a>
+                <a href="/manage/team" class="glass rounded-xl p-6 card-hover group">
+                    <div class="flex items-start gap-4">
+                        <div class="w-10 h-10 bg-cyan-500/20 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:bg-cyan-500/30 transition-colors">
+                            <svg class="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="font-semibold text-white group-hover:text-cyan-400 transition-colors">人员信息</h3>
+                            <p class="text-sm text-white/60 mt-1">团队成员管理，支持名片生成</p>
+                        </div>
+                    </div>
+                </a>
+                <div class="flex items-start gap-4">
+                    <div class="w-10 h-10 glass rounded-lg flex items-center justify-center flex-shrink-0">
+                        <svg class="w-5 h-5 text-brand-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="font-semibold text-white">版本历史</h3>
+                        <p class="text-sm text-white/60 mt-1">v1.0.0 · 持续迭代更新中</p>
+                    </div>
+                </div>
+                <div class="flex items-start gap-4">
+                    <div class="w-10 h-10 glass rounded-lg flex items-center justify-center flex-shrink-0">
+                        <svg class="w-5 h-5 text-brand-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="font-semibold text-white">开源协议</h3>
+                        <p class="text-sm text-white/60 mt-1">MIT License，自由使用</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 错误汇报 -->
+    <section id="report" class="max-w-6xl mx-auto px-6 pb-16 relative z-10">
+        <div class="glass-strong rounded-2xl p-8 sm:p-12">
+            <h2 class="text-2xl font-bold text-white mb-4">错误汇报</h2>
+            <p class="text-white/60 mb-6">发现了 Bug 或有功能建议？请通过以下方式联系我们：</p>
+            <div class="grid md:grid-cols-2 gap-6">
+                <div class="glass rounded-xl p-6">
+                    <h3 class="font-semibold text-white mb-2">提交 Issue</h3>
+                    <p class="text-sm text-white/60 mb-4">在 GitHub 上提交问题或功能建议</p>
+                    <a href="/report" class="inline-flex items-center gap-2 text-sm text-brand-400 hover:text-brand-300 font-medium">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                            <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.17 6.839 9.49.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.604-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.464-1.11-1.464-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.831.092-.646.35-1.086.636-1.336-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0112 6.836c.85.004 1.705.115 2.504.337 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.138 20.167 22 16.418 22 12c0-5.523-4.477-10-10-10z"/>
+                        </svg>
+                        前往 GitHub
+                    </a>
+                </div>
+                <div class="glass rounded-xl p-6">
+                    <h3 class="font-semibold text-white mb-2">邮件反馈</h3>
+                    <p class="text-sm text-white/60 mb-4">发送邮件至技术支持邮箱</p>
+                    <a href="/report" class="inline-flex items-center gap-2 text-sm text-brand-400 hover:text-brand-300 font-medium">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                        </svg>
+                        support@example.com
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 页脚 -->
+    <footer class="glass-strong border-t border-white/10 py-8 relative z-10">
+        <div class="max-w-6xl mx-auto px-6 text-center text-sm text-white/60">
+            <p>© 2026 活码管理系统 · 保留所有权利</p>
+        </div>
+    </footer>
+</div>
+
+<script>
+// 导航栏点击反馈
+document.querySelectorAll('.nav-link').forEach(link => {
+    link.addEventListener('click', function() {
+        document.querySelectorAll('.nav-link').forEach(l => {
+            l.classList.remove('text-white', 'bg-white/10', 'font-bold');
+            l.classList.add('text-white/70');
+        });
+        this.classList.remove('text-white/70');
+        this.classList.add('text-white', 'bg-white/10', 'font-bold');
+        this.style.transform = 'scale(0.95)';
+        setTimeout(() => { this.style.transform = 'scale(1)'; }, 150);
+    });
+});
+
+async function logout() {
+    await fetch('/auth/logout', { method: 'POST' });
+    window.location.href = '/';
+}
+
+// 滚动监听
+const sections = document.querySelectorAll('header[id], section[id]');
+const navLinks = document.querySelectorAll('.nav-link');
+
+function updateActiveNav() {
+    let current = '';
+    sections.forEach(section => {
+        const sectionTop = section.offsetTop;
+        if (window.scrollY >= sectionTop - 150) {
+            current = section.getAttribute('id');
+        }
+    });
+    navLinks.forEach(link => {
+        link.classList.remove('text-white', 'bg-white/10', 'font-bold');
+        link.classList.add('text-white/70');
+        if (link.getAttribute('data-section') === current) {
+            link.classList.remove('text-white/70');
+            link.classList.add('text-white', 'bg-white/10', 'font-bold');
+        }
+    });
+}
+window.addEventListener('scroll', updateActiveNav);
+updateActiveNav();
+</script>
+{% endblock %}

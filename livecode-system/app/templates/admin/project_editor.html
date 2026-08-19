@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+{% block title %}后台编辑项目 - {{ project.title }}{% endblock %}
+
+{% block extra_css %}
+<link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
+<style>
+    #editor { min-height: 300px; }
+    .ql-toolbar { border-radius: 8px 8px 0 0; }
+    .ql-container { border-radius: 0 0 8px 8px; }
+    .upload-tools { display: flex; gap: 8px; margin-top: 12px; }
+    .upload-tool { border: 1px solid #e2e8f0; background: #f8fafc; color: #475569; border-radius: 6px; padding: 7px 12px; font-size: 13px; cursor: pointer; }
+    .upload-tool:hover { background: #e2e8f0; color: #1e293b; }
+    .attachment-list { display: grid; gap: 8px; margin-top: 12px; }
+    .attachment-item { display: flex; align-items: center; gap: 10px; padding: 9px 12px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 13px; }
+    .attachment-item a { flex: 1; color: #2563eb; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .attachment-remove { border: 0; background: transparent; color: #94a3b8; cursor: pointer; }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="min-h-screen bg-slate-50">
+    <nav class="bg-white border-b border-slate-200 px-6 py-4">
+        <div class="max-w-4xl mx-auto flex items-center justify-between">
+            <h1 class="text-xl font-bold text-slate-800">编辑项目</h1>
+            <a href="/admin/" class="text-sm text-brand-600 hover:text-brand-700 font-medium">← 返回后台</a>
+        </div>
+    </nav>
+
+    <main class="max-w-4xl mx-auto px-6 py-8">
+        <div class="mb-6">
+            <p class="text-sm text-slate-500">项目编号：{{ project.id }} · 当前管理员：{{ username }}</p>
+        </div>
+
+        <form method="post" id="projectEditorForm" class="space-y-6">
+            <div>
+                <label class="block text-sm font-medium text-slate-700 mb-2" for="title">项目名称 *</label>
+                <input type="text" id="title" name="title" required value="{{ project.title }}"
+                    class="w-full px-4 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition-all"
+                    placeholder="请输入项目名称">
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-slate-700 mb-2" for="description">项目简介</label>
+                <input type="text" id="description" name="description" value="{{ project.description or '' }}"
+                    class="w-full px-4 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition-all"
+                    placeholder="请输入项目简介">
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-slate-700 mb-2">项目正文</label>
+                <div id="editor-toolbar">
+                    <span class="ql-formats">
+                        <button class="ql-bold"></button>
+                        <button class="ql-italic"></button>
+                        <button class="ql-underline"></button>
+                    </span>
+                    <span class="ql-formats">
+                        <button class="ql-list" value="ordered"></button>
+                        <button class="ql-list" value="bullet"></button>
+                        <button class="ql-link"></button>
+                        <button class="ql-image" title="插入图片"></button>
+                    </span>
+                </div>
+                <div id="editor">{{ project.content | safe if project.content else '' }}</div>
+                <input type="hidden" id="content" name="content">
+                <div class="upload-tools">
+                    <button type="button" class="upload-tool" id="imageUploadButton">上传图片</button>
+                    <button type="button" class="upload-tool" id="fileUploadButton">上传文件</button>
+                    <input type="file" id="imageInput" accept="image/*" hidden>
+                    <input type="file" id="fileInput" hidden>
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-slate-700 mb-2">项目附件</label>
+                <div id="attachmentList" class="attachment-list">
+                    {% for attachment in project.attachments or [] %}
+                    <div class="attachment-item" data-name="{{ attachment.name }}" data-url="{{ attachment.url }}" data-size="{{ attachment.size or 0 }}">
+                        <span>📎</span><a href="{{ attachment.url }}" target="_blank" rel="noreferrer">{{ attachment.name }}</a>
+                        <button type="button" class="attachment-remove">移除</button>
+                    </div>
+                    {% endfor %}
+                </div>
+                <input type="hidden" id="attachments" name="attachments">
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-slate-700 mb-2" for="status">项目状态</label>
+                <select id="status" name="status" class="w-full px-4 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition-all">
+                    <option value="active" {% if project.status == 'active' %}selected{% endif %}>进行中</option>
+                    <option value="draft" {% if project.status == 'draft' %}selected{% endif %}>草稿</option>
+                    <option value="archived" {% if project.status == 'archived' %}selected{% endif %}>已归档</option>
+                </select>
+            </div>
+
+            <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-200">
+                <a href="/admin/" class="px-4 py-2 text-slate-600 hover:text-slate-800 font-medium">取消</a>
+                <button type="submit" class="px-6 py-2 bg-brand-600 hover:bg-brand-700 text-white font-medium rounded-lg transition-colors">保存项目</button>
+            </div>
+        </form>
+    </main>
+</div>
+
+<script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>
+<script>
+const quill = new Quill('#editor', {
+    theme: 'snow',
+    placeholder: '输入项目内容...',
+    modules: {
+        toolbar: '#editor-toolbar'
+    }
+});
+
+async function uploadFile(file, endpoint) {
+    const formData = new FormData();
+    formData.append('file', file);
+    const response = await fetch(endpoint, { method: 'POST', body: formData });
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.detail || '上传失败');
+    return result;
+}
+
+document.getElementById('imageUploadButton').addEventListener('click', () => document.getElementById('imageInput').click());
+document.getElementById('fileUploadButton').addEventListener('click', () => document.getElementById('fileInput').click());
+
+document.getElementById('imageInput').addEventListener('change', async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+    try {
+        const result = await uploadFile(file, '/api/v1/upload/image');
+        const range = quill.getSelection(true) || { index: quill.getLength(), length: 0 };
+        quill.insertEmbed(range.index, 'image', result.url, 'user');
+        quill.setSelection(range.index + 1, 0, 'silent');
+    } catch (error) { alert(error.message); }
+    event.target.value = '';
+});
+
+document.getElementById('fileInput').addEventListener('change', async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+    try {
+        const result = await uploadFile(file, '/api/v1/upload/file');
+        const item = document.createElement('div');
+        item.className = 'attachment-item';
+        item.dataset.name = result.name;
+        item.dataset.url = result.url;
+        item.dataset.size = result.size;
+        item.innerHTML = `<span>📎</span><a href="${result.url}" target="_blank" rel="noreferrer">${result.name}</a><button type="button" class="attachment-remove">移除</button>`;
+        document.getElementById('attachmentList').appendChild(item);
+    } catch (error) { alert(error.message); }
+    event.target.value = '';
+});
+
+document.getElementById('attachmentList').addEventListener('click', (event) => {
+    if (event.target.classList.contains('attachment-remove')) event.target.closest('.attachment-item').remove();
+});
+
+document.getElementById('projectEditorForm').addEventListener('submit', () => {
+    document.getElementById('content').value = quill.root.innerHTML;
+    const attachments = [...document.querySelectorAll('#attachmentList .attachment-item')].map((item) => ({
+        name: item.dataset.name,
+        url: item.dataset.url,
+        size: Number(item.dataset.size || 0),
+    }));
+    document.getElementById('attachments').value = JSON.stringify(attachments);
+});
+</script>
+{% endblock %}

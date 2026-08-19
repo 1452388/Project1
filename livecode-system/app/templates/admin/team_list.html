@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+{% block title %}人员信息 - 活码管理系统{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root { --bg: #ffffff; --bg-alt: #f8f9fa; --card: #ffffff; --ink: #1a1a1a; --ink-soft: #666666; --line: #e5e5e5; }
+    [data-theme="dark"] { --bg: #0a0a0a; --bg-alt: #111111; --card: #141414; --ink: #f0f0f0; --ink-soft: #888888; --line: #222222; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--ink); font-family: "Noto Sans SC", sans-serif; line-height: 1.6; }
+    a { color: inherit; text-decoration: none; }
+    .header { background: var(--bg); border-bottom: 1px solid var(--line); padding: 20px; }
+    .header-inner { max-width: 1100px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
+    .logo { font-size: 18px; font-weight: 700; }
+    .nav { display: flex; gap: 20px; }
+    .nav a { color: var(--ink-soft); font-size: 14px; }
+    .nav a:hover { color: var(--ink); }
+    .main { max-width: 1100px; margin: 0 auto; padding: 40px 24px; }
+    .page-header { margin-bottom: 40px; }
+    .page-title { font-size: 32px; font-weight: 700; margin-bottom: 8px; }
+    .page-subtitle { color: var(--ink-soft); font-size: 15px; }
+    .toolbar { display: flex; gap: 12px; margin-bottom: 32px; flex-wrap: wrap; }
+    .search-box { flex: 1; min-width: 300px; display: flex; gap: 8px; }
+    .search-input { flex: 1; background: var(--bg-alt); border: 1px solid var(--line); color: var(--ink); padding: 10px 16px; border-radius: 8px; font-size: 14px; }
+    .search-input:focus { outline: none; border-color: var(--ink); }
+    .search-input::placeholder { color: var(--ink-soft); }
+    .btn { padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; border: none; }
+    .btn-primary { background: var(--ink); color: var(--bg); }
+    .btn-outline { background: transparent; border: 1px solid var(--line); color: var(--ink); }
+    .filter-group { display: flex; gap: 8px; }
+    .filter-btn { padding: 8px 16px; border-radius: 6px; font-size: 13px; background: transparent; border: 1px solid var(--line); color: var(--ink-soft); cursor: pointer; transition: all 0.2s; }
+    .filter-btn:hover { border-color: var(--ink); color: var(--ink); }
+    .filter-btn.active { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+    .member-list { border-top: 1px solid var(--line); }
+    .member-item { display: flex; gap: 20px; padding: 24px 0; border-bottom: 1px solid var(--line); transition: background 0.2s; cursor: pointer; }
+    .member-item:hover { background: var(--bg-alt); }
+    .member-avatar { width: 72px; height: 72px; border-radius: 50%; overflow: hidden; background: var(--bg-alt); flex-shrink: 0; }
+    .member-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .member-avatar .placeholder { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 24px; color: var(--ink-soft); }
+    .member-info { flex: 1; min-width: 0; }
+    .member-name { font-size: 17px; font-weight: 600; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
+    .member-position { color: var(--ink-soft); font-size: 14px; margin-bottom: 8px; }
+    .member-meta { display: flex; gap: 16px; color: var(--ink-soft); font-size: 13px; flex-wrap: wrap; }
+    .member-meta span { white-space: nowrap; }
+    .status { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 500; }
+    .status-active { background: #e8f5e9; color: #2e7d32; }
+    .status-inactive { background: #ffebee; color: #c62828; }
+    [data-theme="dark"] .status-active { background: #1b3a1b; color: #66bb6a; }
+    [data-theme="dark"] .status-inactive { background: #3a1b1b; color: #ef5350; }
+    .pagination { display: flex; justify-content: center; gap: 4px; margin-top: 40px; }
+    .pagination a, .pagination span { padding: 8px 12px; border-radius: 6px; font-size: 14px; color: var(--ink-soft); transition: all 0.2s; }
+    .pagination a:hover { background: var(--bg-alt); color: var(--ink); }
+    .pagination .active { background: var(--ink); color: var(--bg); }
+    .pagination .disabled { color: var(--line); pointer-events: none; }
+    .empty { text-align: center; padding: 80px 20px; color: var(--ink-soft); }
+    .empty h3 { font-size: 18px; color: var(--ink); margin-bottom: 10px; }
+    .footer { border-top: 1px solid var(--line); padding: 30px 0; margin-top: 60px; }
+    .footer-inner { max-width: 1100px; margin: 0 auto; padding: 0 24px; display: flex; justify-content: space-between; color: var(--ink-soft); font-size: 13px; }
+</style>
+{% endblock %}
+
+{% block body %}
+<header class="header">
+    <div class="header-inner">
+        <a href="/" class="logo">活码管理系统</a>
+        <nav class="nav">
+            <a href="/manage/team" class="nav-link active">人员管理</a>
+            <a href="/manage/projects" class="nav-link">项目管理</a>
+            <a href="/" class="nav-link">首页</a>
+        </nav>
+    </div>
+</header>
+
+<main class="main">
+    <div class="page-header">
+        <h1 class="page-title">人员信息</h1>
+        <p class="page-subtitle">共 {{ total }} 位成员</p>
+    </div>
+
+    <div class="toolbar">
+        <form method="get" class="search-box">
+            <input type="text" name="search" value="{{ search }}" placeholder="搜索姓名、职位、部门..." class="search-input">
+            <button type="submit" class="btn btn-outline">搜索</button>
+        </form>
+        <div class="filter-group">
+            <a href="/manage/team" class="filter-btn {% if not status %}active{% endif %}">全部</a>
+            <a href="/manage/team?status=active" class="filter-btn {% if status == 'active' %}active{% endif %}">在职</a>
+            <a href="/manage/team?status=inactive" class="filter-btn {% if status == 'inactive' %}active{% endif %}">离职</a>
+        </div>
+    </div>
+
+    <div class="member-list">
+        {% if members %}
+            {% for member in members %}
+            <a href="/manage/team/{{ member.code }}" class="member-item">
+                <div class="member-avatar">
+                    {% if member.avatar_url %}
+                    <img src="{{ member.avatar_url }}" alt="{{ member.name }}">
+                    {% else %}
+                    <div class="placeholder">{{ member.name[0] }}</div>
+                    {% endif %}
+                </div>
+                <div class="member-info">
+                    <div class="member-name">
+                        {{ member.name }}
+                        <span class="status {% if member.status == 'active' %}status-active{% else %}status-inactive{% endif %}">
+                            {{ '在职' if member.status == 'active' else '离职' }}
+                        </span>
+                    </div>
+                    <div class="member-position">{{ member.position or '未设置职位' }}{% if member.department %} · {{ member.department }}{% endif %}</div>
+                    <div class="member-meta">
+                        {% if member.phone %}<span>📞 电话：{{ member.phone }}</span>{% endif %}
+                        {% if member.email %}<span>📧 邮箱：{{ member.email }}</span>{% endif %}
+                        {% if member.wechat %}<span>💬 微信：{{ member.wechat }}</span>{% endif %}
+                    </div>
+                </div>
+            </a>
+            {% endfor %}
+
+            {% if total > 10 %}
+            <div class="pagination">
+                {% if page > 1 %}
+                <a href="/manage/team?page={{ page - 1 }}{% if search %}&search={{ search }}{% endif %}{% if status %}&status={{ status }}{% endif %}">上一页</a>
+                {% else %}
+                <span class="disabled">上一页</span>
+                {% endif %}
+                {% for p in range(1, ((total / 10)|int) + 2) %}
+                <a href="/manage/team?page={{ p }}{% if search %}&search={{ search }}{% endif %}{% if status %}&status={{ status }}{% endif %}" class="{% if p == page %}active{% endif %}">{{ p }}</a>
+                {% endfor %}
+                {% if page < ((total / 10)|int) + 1 %}
+                <a href="/manage/team?page={{ page + 1 }}{% if search %}&search={{ search }}{% endif %}{% if status %}&status={{ status }}{% endif %}">下一页</a>
+                {% else %}
+                <span class="disabled">下一页</span>
+                {% endif %}
+            </div>
+            {% endif %}
+        {% else %}
+            <div class="empty">
+                <h3>暂无成员</h3>
+                <p>暂无人员信息</p>
+            </div>
+        {% endif %}
+    </div>
+</main>
+
+<footer class="footer">
+    <div class="footer-inner">
+        <span>© 2026 活码管理系统</span>
+        <span>保留所有权利</span>
+    </div>
+</footer>
+{% endblock %}

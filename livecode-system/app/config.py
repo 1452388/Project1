@@ -82,4 +82,12 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
+
+# Vercel 的项目目录是只读的，SQLite 无法用于生产写入。
+if IS_SERVERLESS and settings.DATABASE_URL.startswith("sqlite"):
+    raise RuntimeError(
+        "生产环境必须配置 PostgreSQL：请设置 DATABASE_URL，"
+        "不能在 Vercel 上使用 SQLite。"
+    )
+
 settings.ensure_dirs()

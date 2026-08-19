@@ -86,6 +86,17 @@ livecode-system/
 6. 设备/来源/地域分析
 7. 公网部署
 
+### Vercel 部署数据库
+
+Vercel 的项目目录是只读的，生产环境不能使用 SQLite。请在 Vercel 项目
+Production 环境配置 PostgreSQL 连接字符串：
+
+```text
+DATABASE_URL=postgresql+asyncpg://user:password@host:5432/livecode_db
+```
+
+配置后执行 `alembic upgrade head` 创建数据表，再重新部署应用。
+
 ## 开发说明
 
 - 数据库：SQLite 单文件，切换 PostgreSQL 只需修改 `config.py` 中的 DATABASE_URL

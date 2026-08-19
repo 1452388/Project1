@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+{% block title %}{{ project.title }} - 项目详情{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --bg: #ffffff; --bg-alt: #f8f9fa; --card: #ffffff; --ink: #1a1a1a;
+        --ink-soft: #666666; --line: #e5e5e5; --accent: #000000;
+    }
+    [data-theme="dark"] {
+        --bg: #0a0a0a; --bg-alt: #111111; --card: #141414; --ink: #f0f0f0;
+        --ink-soft: #888888; --line: #222222; --accent: #ffffff;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--ink); font-family: "Noto Sans SC", "PingFang SC", sans-serif; line-height: 1.6; }
+    a { color: inherit; text-decoration: none; }
+    .header { position: sticky; top: 0; z-index: 100; background: color-mix(in srgb, var(--bg) 94%, transparent); backdrop-filter: blur(14px); border-bottom: 1px solid var(--line); }
+    .header-inner { max-width: 800px; margin: 0 auto; padding: 0 24px; min-height: 64px; display: flex; align-items: center; justify-content: space-between; }
+    .back-link { font-size: 14px; color: var(--ink-soft); display: flex; align-items: center; gap: 6px; }
+    .back-link:hover { color: var(--ink); }
+    .header-actions { display: flex; gap: 8px; align-items: center; }
+    .live-code-panel { padding: 24px 40px; border-top: 1px solid var(--line); text-align: center; }
+    .live-code-panel img { width: 180px; height: 180px; margin: 12px auto; display: block; }
+    .live-code-url { color: var(--ink-soft); font-size: 13px; word-break: break-all; }
+    .btn { padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s; border: none; text-decoration: none; display: inline-block; }
+    .btn-outline { background: transparent; border: 1px solid var(--line); color: var(--ink); }
+    .btn-outline:hover { border-color: var(--ink); }
+    .btn-danger { background: #c62828; color: #fff; }
+    .btn-danger:hover { background: #b71c1c; }
+    .main { max-width: 800px; margin: 0 auto; padding: 40px 24px; }
+    .card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; overflow: hidden; }
+    .card-header { padding: 48px 40px; border-bottom: 1px solid var(--line); }
+    .project-title { font-size: 28px; font-weight: 700; margin-bottom: 12px; font-family: "Noto Serif SC", serif; }
+    .project-desc { color: var(--ink-soft); font-size: 16px; margin-bottom: 16px; }
+    .project-meta { display: flex; gap: 16px; color: var(--ink-soft); font-size: 13px; flex-wrap: wrap; }
+    .status { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 500; }
+    .status-active { background: #e8f5e9; color: #2e7d32; }
+    .status-draft { background: #fff3e0; color: #e65100; }
+    .status-archived { background: #f5f5f5; color: #616161; }
+    [data-theme="dark"] .status-active { background: #1b3a1b; color: #66bb6a; }
+    [data-theme="dark"] .status-draft { background: #3a2a1b; color: #ffb74d; }
+    [data-theme="dark"] .status-archived { background: #2a2a2a; color: #9e9e9e; }
+    .content-section { padding: 32px 40px; }
+    .section-title { font-size: 14px; font-weight: 600; color: var(--ink-soft); margin-bottom: 16px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .content-body { font-size: 15px; line-height: 1.8; }
+    .content-body h1, .content-body h2, .content-body h3 { font-family: "Noto Serif SC", serif; margin: 24px 0 12px; }
+    .content-body p { margin-bottom: 12px; }
+    .content-body img { max-width: 100%; border-radius: 8px; margin: 12px 0; }
+    .content-body ul, .content-body ol { margin-left: 24px; margin-bottom: 12px; }
+    .content-body li { margin-bottom: 6px; }
+    .content-body strong { font-weight: 600; }
+    .attachments-section { padding: 32px 40px; border-top: 1px solid var(--line); }
+    .attachment-list { display: flex; flex-direction: column; gap: 8px; }
+    .attachment-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: var(--bg-alt); border-radius: 8px; transition: background 0.2s; }
+    .attachment-item:hover { background: var(--line); }
+    .attachment-icon { font-size: 20px; }
+    .attachment-info { flex: 1; min-width: 0; }
+    .attachment-name { font-size: 14px; font-weight: 500; }
+    .attachment-size { font-size: 12px; color: var(--ink-soft); }
+    .attachment-download { color: var(--ink-soft); font-size: 13px; text-decoration: none; }
+    .attachment-download:hover { color: var(--ink); }
+    .style-section { padding: 32px 40px; border-top: 1px solid var(--line); }
+    .style-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+    .style-item { padding: 12px 16px; background: var(--bg-alt); border-radius: 8px; }
+    .style-label { font-size: 12px; color: var(--ink-soft); margin-bottom: 4px; }
+    .style-value { font-size: 14px; font-weight: 500; }
+</style>
+{% endblock %}
+
+{% block body %}
+<header class="header">
+    <div class="header-inner">
+        <a href="/manage/projects" class="back-link">← 返回列表</a>
+        <div class="header-actions"></div>
+    </div>
+</header>
+
+<main class="main">
+    <div class="card">
+        <!-- 头部信息 -->
+        <div class="card-header">
+            <h1 class="project-title">{{ project.title }}</h1>
+            {% if project.description %}
+            <p class="project-desc">{{ project.description }}</p>
+            {% endif %}
+            <div class="project-meta">
+                <span class="status {% if project.status == 'active' %}status-active{% elif project.status == 'draft' %}status-draft{% else %}status-archived{% endif %}">
+                    {{ '进行中' if project.status == 'active' else ('草稿' if project.status == 'draft' else '已归档') }}
+                </span>
+                <span>🕐 创建：{{ project.created_at.strftime('%Y-%m-%d %H:%M') }}</span>
+                <span>🔄 更新：{{ project.updated_at.strftime('%Y-%m-%d %H:%M') }}</span>
+            </div>
+            <form method="post" action="/manage/projects/{{ project.id }}/live-code" style="margin-top: 20px;">
+                <button type="submit" class="btn btn-outline">生成项目二维码</button>
+            </form>
+        </div>
+
+        {% if live_code %}
+        <div class="live-code-panel">
+            <div class="section-title">项目二维码活码</div>
+            <img src="/api/v1/qr/{{ live_code.id }}?size=medium&caption=扫一扫查看" alt="项目二维码">
+            <div class="live-code-url">{{ request.base_url }}l/{{ live_code.code }}</div>
+        </div>
+        {% endif %}
+
+        <!-- 内容区域 -->
+        {% if project.content %}
+        <div class="content-section">
+            <div class="section-title">项目内容</div>
+            <div class="content-body">{{ project.content | safe }}</div>
+        </div>
+        {% endif %}
+
+        <!-- 附件列表 -->
+        {% if project.attachments %}
+        <div class="attachments-section">
+            <div class="section-title">附件列表（{{ project.attachments | length }} 个）</div>
+            <div class="attachment-list">
+                {% for file in project.attachments %}
+                <div class="attachment-item">
+                    <div class="attachment-icon">📎</div>
+                    <div class="attachment-info">
+                        <div class="attachment-name">{{ file.name }}</div>
+                        {% if file.size %}
+                        <div class="attachment-size">{{ (file.size / 1024) | round(1) }} KB</div>
+                        {% endif %}
+                    </div>
+                    {% if file.url %}
+                    <a href="{{ file.url }}" download class="attachment-download">下载</a>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- 样式配置 -->
+        {% if project.content_style %}
+        <div class="style-section">
+            <div class="section-title">内容样式</div>
+            <div class="style-grid">
+                {% for key, value in project.content_style.items() %}
+                <div class="style-item">
+                    <div class="style-label">{{ key }}</div>
+                    <div class="style-value">{{ value }}</div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</main>
+{% endblock %}

@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}活码管理系统{% endblock %}</title>
+    <!-- Tailwind CSS (CDN) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#eef2ff', 100: '#e0e7ff', 200: '#c7d2fe',
+                            300: '#a5b4fc', 400: '#818cf8', 500: '#6366f1',
+                            600: '#4f46e5', 700: '#4338ca', 800: '#3730a3', 900: '#312e81'
+                        }
+                    },
+                    animation: {
+                        'float': 'float 6s ease-in-out infinite',
+                        'glow': 'glow 2s ease-in-out infinite alternate',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0px)' },
+                            '50%': { transform: 'translateY(-20px)' },
+                        },
+                        glow: {
+                            '0%': { boxShadow: '0 0 20px rgba(79, 70, 229, 0.2)' },
+                            '100%': { boxShadow: '0 0 30px rgba(79, 70, 229, 0.4)' },
+                        }
+                    }
+                },
+                fontFamily: {
+                    sans: ['-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'sans-serif']
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* 玻璃拟态组件 */
+        .glass {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .glass-strong {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+        }
+
+        /* 卡片效果 */
+        .card-hover {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .card-hover:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px -10px rgba(0,0,0,0.15);
+        }
+
+        /* 渐变背景动画 */
+        .gradient-bg {
+            background: linear-gradient(-45deg, #0f0c29, #302b63, #24243e, #0f0c29);
+            background-size: 400% 400%;
+            animation: gradient 15s ease infinite;
+        }
+        @keyframes gradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* 装饰性光点 */
+        .bg-decoration {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: 0;
+        }
+        .bg-decoration .circle {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.3;
+        }
+        .bg-decoration .c1 { width: 400px; height: 400px; background: #6366f1; top: -100px; right: -100px; animation: float 8s ease-in-out infinite; }
+        .bg-decoration .c2 { width: 300px; height: 300px; background: #06b6d4; bottom: -50px; left: -50px; animation: float 10s ease-in-out infinite reverse; }
+        .bg-decoration .c3 { width: 200px; height: 200px; background: #f59e0b; top: 50%; left: 30%; animation: float 12s ease-in-out infinite; }
+
+        /* 按钮效果 */
+        .btn-primary {
+            background: linear-gradient(135deg, #4f46e5, #6366f1);
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(79, 70, 229, 0.3);
+        }
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        /* 输入框效果 */
+        .input-glass {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            transition: all 0.3s ease;
+        }
+        .input-glass:focus {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: rgba(255, 255, 255, 0.3);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.3);
+        }
+
+        /* 数字统计卡片 */
+        .stat-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* 滚动条美化 */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-thumb { background: #c7d2fe; border-radius: 3px; }
+        ::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="min-h-screen flex flex-col text-slate-800">
+
+{% block body %}
+{% endblock %}
+
+<!-- HTMX (CDN) -->
+<script src="https://unpkg.com/htmx.org@1.9.12"></script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

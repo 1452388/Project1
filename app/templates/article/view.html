@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}{{ article.title }} - 活码管理系统{% endblock %}
+
+{% block body %}
+<div class="max-w-3xl mx-auto px-4 py-8">
+    <!-- 文章头部 -->
+    <header class="mb-8">
+        {% if article.cover_url %}
+        <div class="rounded-2xl overflow-hidden mb-6 shadow-md">
+            <img src="{{ article.cover_url }}" alt="{{ article.title }}" class="w-full h-64 object-cover">
+        </div>
+        {% endif %}
+        <h1 class="text-3xl font-bold text-slate-900 mb-2">{{ article.title }}</h1>
+        <div class="flex items-center text-sm text-slate-400 space-x-2">
+            <span>发布于 {{ article.updated_at.strftime('%Y-%m-%d') }}</span>
+            <span>·</span>
+            <span>扫码 {{ live_code.scan_count }} 次</span>
+        </div>
+    </header>
+
+    <!-- 文章正文（富文本渲染） -->
+    <article class="prose prose-slate max-w-none text-slate-700 leading-relaxed">
+        {{ article.content | safe }}
+    </article>
+
+    <!-- 图片集 -->
+    {% if article.images | length > 1 %}
+    <section class="mt-8">
+        <h2 class="text-lg font-semibold text-slate-800 mb-4">图片集</h2>
+        <div class="grid grid-cols-2 gap-3">
+            {% for img in article.images[1:] %}
+            <img src="{{ img }}" alt="图片 {{ loop.index }}" class="rounded-xl w-full h-40 object-cover shadow-sm">
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    <!-- 二维码分享区 -->
+    <div class="mt-10 pt-6 border-t border-slate-100 text-center">
+        <h3 class="text-sm font-medium text-slate-700 mb-4">分享此页面</h3>
+        <div class="inline-block bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+            <img src="/api/v1/qr/{{ live_code.id }}?size=medium&caption=扫一扫查看{{ article.title }}"
+                alt="分享二维码" class="w-48 h-48 mx-auto">
+        </div>
+        <p class="text-xs text-slate-400 mt-3">扫描二维码查看此页面</p>
+        <a href="/api/v1/qr/{{ live_code.id }}/download?size=medium&caption=扫一扫查看{{ article.title }}"
+            download
+            class="inline-flex items-center gap-2 mt-4 text-sm text-brand-600 hover:text-brand-700 font-medium transition-colors">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v12m0 0l-4-4m4 4l4-4M4 20h16"/>
+            </svg>
+            下载二维码
+        </a>
+    </div>
+</div>
+{% endblock %}

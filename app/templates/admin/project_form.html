@@ -1,0 +1,267 @@
+{% extends "base.html" %}
+{% block title %}{% if project %}编辑项目{% else %}新建项目{% endif %} - 活码管理系统{% endblock %}
+
+{% block extra_css %}
+<link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
+<style>
+    :root { --bg: #ffffff; --bg-alt: #f8f9fa; --card: #ffffff; --ink: #1a1a1a; --ink-soft: #666666; --line: #e5e5e5; }
+    [data-theme="dark"] { --bg: #0a0a0a; --bg-alt: #111111; --card: #141414; --ink: #f0f0f0; --ink-soft: #888888; --line: #222222; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--ink); font-family: "Noto Sans SC", sans-serif; line-height: 1.6; }
+    a { color: inherit; text-decoration: none; }
+    .header { background: var(--bg); border-bottom: 1px solid var(--line); padding: 20px; }
+    .header-inner { max-width: 900px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
+    .logo { font-size: 18px; font-weight: 700; }
+    .nav { display: flex; gap: 20px; }
+    .nav a { color: var(--ink-soft); font-size: 14px; }
+    .nav a:hover { color: var(--ink); }
+    .main { max-width: 900px; margin: 0 auto; padding: 40px 24px; }
+    .page-header { margin-bottom: 32px; }
+    .page-title { font-size: 28px; font-weight: 700; margin-bottom: 8px; }
+    .form-card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 32px; }
+    .form-group { margin-bottom: 24px; }
+    .form-label { display: block; font-size: 14px; font-weight: 500; margin-bottom: 8px; color: var(--ink); }
+    .form-hint { font-size: 12px; color: var(--ink-soft); margin-top: 4px; }
+    .form-input { width: 100%; background: var(--bg-alt); border: 1px solid var(--line); color: var(--ink); padding: 10px 16px; border-radius: 8px; font-size: 14px; font-family: inherit; }
+    .form-input:focus { outline: none; border-color: var(--ink); }
+    .form-textarea { min-height: 80px; resize: vertical; }
+    .form-select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23666' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 36px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .form-actions { display: flex; justify-content: flex-end; gap: 12px; padding-top: 24px; border-top: 1px solid var(--line); }
+    .btn { padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; border: none; transition: all 0.2s; }
+    .btn-primary { background: var(--ink); color: var(--bg); }
+    .btn-primary:hover { opacity: 0.9; }
+    .btn-outline { background: transparent; border: 1px solid var(--line); color: var(--ink); }
+    .btn-outline:hover { border-color: var(--ink); }
+    .ql-toolbar { border-radius: 8px 8px 0 0; border-color: var(--line) !important; background: var(--bg-alt); }
+    .ql-container { border-radius: 0 0 8px 8px; border-color: var(--line) !important; min-height: 200px; font-family: inherit; font-size: 15px; }
+    .ql-editor { color: var(--ink); }
+    .ql-editor.ql-blank::before { color: var(--ink-soft); font-style: normal; }
+    .attachment-area { border: 2px dashed var(--line); border-radius: 8px; padding: 24px; text-align: center; cursor: pointer; transition: border-color 0.2s; }
+    .attachment-area:hover { border-color: var(--ink-soft); }
+    .attachment-area-text { color: var(--ink-soft); font-size: 14px; }
+    .attachment-list { margin-top: 12px; display: flex; flex-direction: column; gap: 8px; }
+    .attachment-item { display: flex; align-items: center; gap: 12px; padding: 10px 14px; background: var(--bg-alt); border-radius: 8px; }
+    .attachment-item-info { flex: 1; font-size: 13px; }
+    .attachment-item-remove { background: none; border: none; color: var(--ink-soft); cursor: pointer; font-size: 16px; }
+    .attachment-item-remove:hover { color: #c62828; }
+</style>
+{% endblock %}
+
+{% block body %}
+<header class="header">
+    <div class="header-inner">
+        <a href="/" class="logo">活码管理系统</a>
+        <nav class="nav">
+            <a href="/manage/team" class="nav-link">人员管理</a>
+            <a href="/manage/projects" class="nav-link active">项目管理</a>
+            <a href="/" class="nav-link">首页</a>
+        </nav>
+    </div>
+</header>
+
+<main class="main">
+    <div class="page-header">
+        <h1 class="page-title">{% if project %}编辑项目{% else %}新建项目{% endif %}</h1>
+    </div>
+
+    <div class="form-card">
+        <form id="projectForm">
+            <!-- 项目名称 -->
+            <div class="form-group">
+                <label class="form-label">项目名称 *</label>
+                <input type="text" id="title" name="title" required class="form-input" placeholder="请输入项目名称" value="{{ project.title if project else '' }}">
+            </div>
+
+            <!-- 简短描述 -->
+            <div class="form-group">
+                <label class="form-label">简短描述</label>
+                <textarea id="description" name="description" class="form-input form-textarea" placeholder="项目的简短描述，用于列表展示" rows="2">{{ project.description if project else '' }}</textarea>
+            </div>
+
+            <!-- 封面图 + 状态 -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">封面图 URL</label>
+                    <input type="text" id="cover_image" name="cover_image" class="form-input" placeholder="https://example.com/image.jpg" value="{{ project.cover_image if project and project.cover_image else '' }}">
+                    <div class="form-hint">填写图片地址，或通过下方上传</div>
+                    <input type="file" id="coverImageFile" accept="image/*" style="display:none;">
+                    <button type="button" onclick="document.getElementById('coverImageFile').click()" class="btn btn-outline" style="margin-top:8px; font-size:13px; padding:6px 14px;">上传封面图</button>
+                    {% if project and project.cover_image %}
+                    <div style="margin-top:8px;"><img src="{{ project.cover_image }}" style="max-width:200px; max-height:120px; border-radius:8px; object-fit:cover;"></div>
+                    {% endif %}
+                </div>
+                <div class="form-group">
+                    <label class="form-label">项目状态</label>
+                    <select id="status" name="status" class="form-input form-select">
+                        <option value="active" {% if project and project.status == 'active' %}selected{% endif %}>进行中</option>
+                        <option value="draft" {% if project and project.status == 'draft' %}selected{% endif %}>草稿</option>
+                        <option value="archived" {% if project and project.status == 'archived' %}selected{% endif %}>已归档</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- 项目内容（富文本） -->
+            <div class="form-group">
+                <label class="form-label">项目内容</label>
+                <div id="editor">{% if project and project.content %}{{ project.content | safe }}{% endif %}</div>
+                <input type="hidden" id="content" name="content">
+            </div>
+
+            <!-- 内容样式配置 -->
+            <div class="form-group">
+                <label class="form-label">内容样式</label>
+                <div class="form-row">
+                    <div>
+                        <label class="form-hint">字体</label>
+                        <select id="style_font" class="form-input" style="margin-top:4px;">
+                            <option value="Noto Sans SC" {% if project and project.content_style.get('font') == 'Noto Sans SC' %}selected{% endif %}>Noto Sans SC</option>
+                            <option value="Noto Serif SC" {% if project and project.content_style.get('font') == 'Noto Serif SC' %}selected{% endif %}>Noto Serif SC</option>
+                            <option value="PingFang SC" {% if project and project.content_style.get('font') == 'PingFang SC' %}selected{% endif %}>PingFang SC</option>
+                            <option value="Microsoft YaHei" {% if project and project.content_style.get('font') == 'Microsoft YaHei' %}selected{% endif %}>微软雅黑</option>
+                            <option value="SimSun" {% if project and project.content_style.get('font') == 'SimSun' %}selected{% endif %}>宋体</option>
+                            <option value="SimHei" {% if project and project.content_style.get('font') == 'SimHei' %}selected{% endif %}>黑体</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="form-hint">字号</label>
+                        <select id="style_font_size" class="form-input" style="margin-top:4px;">
+                            <option value="14px" {% if project and project.content_style.get('font_size') == '14px' %}selected{% endif %}>14px 小</option>
+                            <option value="16px" {% if project and project.content_style.get('font_size') == '16px' %}selected{% endif %}>16px 标准</option>
+                            <option value="18px" {% if project and project.content_style.get('font_size') == '18px' %}selected{% endif %}>18px 大</option>
+                            <option value="20px" {% if project and project.content_style.get('font_size') == '20px' %}selected{% endif %}>20px 特大</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 附件 -->
+            <div class="form-group">
+                <label class="form-label">附件</label>
+                <div class="attachment-area" onclick="document.getElementById('attachmentFile').click()">
+                    <div class="attachment-area-text">📎 点击或拖拽文件到此处上传</div>
+                </div>
+                <input type="file" id="attachmentFile" multiple style="display:none;" onchange="handleAttachmentUpload(this.files)">
+                <div class="attachment-list" id="attachmentList">
+                    {% if project and project.attachments %}
+                        {% for att in project.attachments %}
+                        <div class="attachment-item" data-url="{{ att.url }}" data-name="{{ att.name }}" data-size="{{ att.size or 0 }}">
+                            <span>📎</span>
+                            <div class="attachment-item-info">{{ att.name }}{% if att.size %}（{{ (att.size / 1024) | round(1) }} KB）{% endif %}</div>
+                            <button type="button" class="attachment-item-remove" onclick="this.parentElement.remove()">×</button>
+                        </div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- 按钮 -->
+            <div class="form-actions">
+                <a href="/manage/projects{% if project %}/{{ project.id }}{% endif %}" class="btn btn-outline">取消</a>
+                <button type="submit" class="btn btn-primary">{% if project %}保存修改{% else %}创建项目{% endif %}</button>
+            </div>
+        </form>
+    </div>
+</main>
+
+<script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>
+<script>
+const quill = new Quill('#editor', {
+    theme: 'snow',
+    placeholder: '输入项目内容...',
+    modules: {
+        toolbar: [
+            [{ header: [1, 2, 3, false] }],
+            ['bold', 'italic', 'underline', 'strike'],
+            [{ list: 'ordered' }, { list: 'bullet' }],
+            ['blockquote', 'code-block'],
+            [{ align: [] }],
+            ['link', 'image'],
+            ['clean']
+        ]
+    }
+});
+
+// 封面图上传
+document.getElementById('coverImageFile').addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const formData = new FormData();
+    formData.append('file', file);
+    const resp = await fetch('/api/v1/upload/image', { method: 'POST', body: formData });
+    const data = await resp.json();
+    if (data.url) {
+        document.getElementById('cover_image').value = data.url;
+    }
+});
+
+// 附件上传
+async function handleAttachmentUpload(files) {
+    for (const file of files) {
+        const formData = new FormData();
+        formData.append('file', file);
+        try {
+            const resp = await fetch('/api/v1/upload/image', { method: 'POST', body: formData });
+            const data = await resp.json();
+            if (data.url) {
+                const item = document.createElement('div');
+                item.className = 'attachment-item';
+                item.dataset.url = data.url;
+                item.dataset.name = file.name;
+                item.dataset.size = file.size;
+                item.innerHTML = '<span>📎</span><div class="attachment-item-info">' + file.name + '（' + (file.size / 1024).toFixed(1) + ' KB）</div><button type="button" class="attachment-item-remove" onclick="this.parentElement.remove()">×</button>';
+                document.getElementById('attachmentList').appendChild(item);
+            }
+        } catch (err) {
+            console.error('上传失败:', err);
+        }
+    }
+}
+
+// 表单提交
+document.getElementById('projectForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const projectId = '{{ project.id if project else "" }}';
+    const url = projectId ? '/api/v1/projects/' + projectId : '/api/v1/projects';
+    const method = projectId ? 'PUT' : 'POST';
+
+    // 收集附件
+    const attachments = [];
+    document.querySelectorAll('#attachmentList .attachment-item').forEach(el => {
+        attachments.push({
+            name: el.dataset.name,
+            url: el.dataset.url,
+            size: parseInt(el.dataset.size) || 0
+        });
+    });
+
+    // 收集样式
+    const content_style = {
+        font: document.getElementById('style_font').value,
+        font_size: document.getElementById('style_font_size').value
+    };
+
+    const body = {
+        title: document.getElementById('title').value,
+        description: document.getElementById('description').value || null,
+        content: quill.root.innerHTML,
+        content_style: content_style,
+        status: document.getElementById('status').value,
+        cover_image: document.getElementById('cover_image').value || null,
+        attachments: attachments
+    };
+
+    const resp = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+    });
+    if (resp.ok) {
+        window.location.href = projectId ? '/manage/projects/' + projectId : '/manage/projects';
+    } else {
+        const err = await resp.json();
+        alert('操作失败：' + (err.detail || '未知错误'));
+    }
+});
+</script>
+{% endblock %}

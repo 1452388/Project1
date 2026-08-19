@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}{{ title }} - 活码管理系统{% endblock %}
+
+{% block body %}
+<div class="min-h-screen flex items-center justify-center px-4">
+    <div class="bg-white rounded-2xl shadow-lg p-10 max-w-md w-full text-center">
+        <div class="text-6xl mb-6">{{ icon }}</div>
+        <h1 class="text-2xl font-bold text-slate-800 mb-3">{{ title }}</h1>
+        <p class="text-slate-500 mb-6">{{ message }}</p>
+        <div class="text-xs text-slate-400">活码管理系统</div>
+    </div>
+</div>
+{% endblock %}

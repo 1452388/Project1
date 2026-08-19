@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+{% block title %}二维码配置 - 活码管理系统{% endblock %}
+
+{% block body %}
+<div class="min-h-screen bg-slate-50">
+    <nav class="bg-white border-b border-slate-200 px-6 py-4">
+        <div class="max-w-5xl mx-auto flex items-center justify-between">
+            <h1 class="text-xl font-bold text-slate-800">二维码配置</h1>
+            <a href="/manage/live-codes" class="text-sm text-brand-600 hover:text-brand-700 font-medium">← 返回活码列表</a>
+        </div>
+    </nav>
+
+    <main class="max-w-5xl mx-auto px-6 py-8">
+        <div class="grid lg:grid-cols-2 gap-8">
+            <!-- 左侧：配置面板 -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-8">
+                <h2 class="text-lg font-semibold text-slate-800 mb-1">活码信息</h2>
+                <div class="text-sm text-slate-500 mb-6 space-y-1">
+                    <p>活码ID：<code class="bg-slate-100 px-2 py-0.5 rounded font-mono text-brand-600">{{ live_code.code }}</code></p>
+                    <p>关联文章：{{ article.title if article else '未知' }}</p>
+                    <p>跳转地址：{{ request.base_url }}l/{{ live_code.code }}</p>
+                </div>
+
+                <form id="qrForm" class="space-y-5">
+                    <!-- 尺寸 -->
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-2">尺寸</label>
+                        <div class="flex gap-3">
+                            {% for key, label in sizes.items() %}
+                            <label class="flex-1 cursor-pointer">
+                                <input type="radio" name="size" value="{{ key }}" class="peer hidden" {% if key == 'medium' %}checked{% endif %}>
+                                <div class="border border-slate-200 rounded-lg px-3 py-2.5 text-center text-sm font-medium text-slate-600 peer-checked:border-brand-500 peer-checked:bg-brand-50 peer-checked:text-brand-700 transition-all hover:border-slate-300">
+                                    {{ label }}
+                                </div>
+                            </label>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <!-- 边框文字 -->
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-2">边框文字 <span class="text-slate-400 font-normal">（可选）</span></label>
+                        <input type="text" id="caption" name="caption"
+                            class="w-full px-4 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition-all"
+                            placeholder="如：扫一扫查看产品"
+                            maxlength="30">
+                        <p class="text-xs text-slate-400 mt-1">显示在二维码上方，留空则不显示</p>
+                    </div>
+
+                    <!-- Logo（预留，暂不可选） -->
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-2">嵌入 Logo <span class="text-xs text-slate-400">（后续版本支持）</span></label>
+                        <div class="border border-dashed border-slate-200 rounded-lg px-4 py-6 text-center bg-slate-50">
+                            <p class="text-sm text-slate-400">暂不支持自定义 Logo</p>
+                        </div>
+                    </div>
+
+                    <!-- 按钮 -->
+                    <div class="flex gap-3 pt-2">
+                        <button type="button" id="refreshBtn"
+                            class="flex-1 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium rounded-lg transition-colors">
+                            刷新预览
+                        </button>
+                        <a id="downloadLink" href="#"
+                            class="flex-1 px-4 py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-medium rounded-lg transition-colors text-center">
+                            下载二维码
+                        </a>
+                    </div>
+                </form>
+            </div>
+
+            <!-- 右侧：二维码预览 -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 flex flex-col items-center justify-center">
+                <h2 class="text-lg font-semibold text-slate-800 mb-6 self-start">预览</h2>
+                <div id="qrPreview" class="bg-white p-4 border border-slate-100 rounded-xl shadow-inner">
+                    <img id="qrImage" src="/api/v1/qr/{{ live_code.id }}?size=medium&caption=扫一扫查看"
+                        alt="二维码" class="w-80 h-80 object-contain">
+                </div>
+                <p class="text-xs text-slate-400 mt-4">配置变更后点击「刷新预览」</p>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script>
+const liveCodeId = {{ live_code.id }};
+const form = document.getElementById('qrForm');
+const qrImage = document.getElementById('qrImage');
+const downloadLink = document.getElementById('downloadLink');
+const refreshBtn = document.getElementById('refreshBtn');
+
+function buildUrl(download = false) {
+    const size = form.querySelector('input[name="size"]:checked').value;
+    const caption = document.getElementById('caption').value;
+    const base = download ? `/api/v1/qr/${liveCodeId}/download` : `/api/v1/qr/${liveCodeId}`;
+    let url = `${base}?size=${size}`;
+    if (caption) url += `&caption=${encodeURIComponent(caption)}`;
+    return url;
+}
+
+function refreshPreview() {
+    qrImage.src = buildUrl(false);
+    downloadLink.href = buildUrl(true);
+}
+
+// 初始下载链接
+refreshPreview();
+
+// 刷新按钮
+refreshBtn.addEventListener('click', refreshPreview);
+
+// 尺寸点击即刷新
+form.querySelectorAll('input[name="size"]').forEach(radio => {
+    radio.addEventListener('change', refreshPreview);
+});
+
+// 边框文字实时更新（带防抖）
+let timer;
+document.getElementById('caption').addEventListener('input', () => {
+    clearTimeout(timer);
+    timer = setTimeout(refreshPreview, 500);
+});
+
+// 下载链接始终跟随当前配置
+downloadLink.href = buildUrl(true);
+</script>
+{% endblock %}

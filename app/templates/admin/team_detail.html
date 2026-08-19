@@ -1,0 +1,218 @@
+{% extends "base.html" %}
+{% block title %}{{ member.name }} - 人员详情{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --bg: #ffffff;
+        --bg-alt: #f8f9fa;
+        --card: #ffffff;
+        --ink: #1a1a1a;
+        --ink-soft: #666666;
+        --line: #e5e5e5;
+        --accent: #000000;
+        --accent-soft: #f5f5f5;
+    }
+    [data-theme="dark"] {
+        --bg: #0a0a0a;
+        --bg-alt: #111111;
+        --card: #141414;
+        --ink: #f0f0f0;
+        --ink-soft: #888888;
+        --line: #222222;
+        --accent: #ffffff;
+        --accent-soft: #1a1a1a;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--ink); font-family: "Noto Sans SC", "PingFang SC", sans-serif; line-height: 1.6; }
+    a { color: inherit; text-decoration: none; }
+
+    .header { position: sticky; top: 0; z-index: 100; background: color-mix(in srgb, var(--bg) 94%, transparent); backdrop-filter: blur(14px); border-bottom: 1px solid var(--line); }
+    .header-inner { max-width: 800px; margin: 0 auto; padding: 0 24px; min-height: 64px; display: flex; align-items: center; justify-content: space-between; }
+    .back-link { font-size: 14px; color: var(--ink-soft); display: flex; align-items: center; gap: 6px; }
+    .back-link:hover { color: var(--ink); }
+    .header-actions { display: flex; gap: 8px; }
+    .btn { padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s; border: none; text-decoration: none; }
+    .btn-primary { background: var(--accent); color: var(--bg); }
+    .btn-primary:hover { opacity: 0.9; }
+    .btn-outline { background: transparent; border: 1px solid var(--line); color: var(--ink); }
+    .btn-outline:hover { border-color: var(--ink); }
+
+    .main { max-width: 800px; margin: 0 auto; padding: 40px 24px; }
+
+    /* 详情卡片 */
+    .card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; overflow: hidden; }
+    .card-header { padding: 48px 40px; text-align: center; border-bottom: 1px solid var(--line); }
+    .avatar { width: 120px; height: 120px; border-radius: 50%; overflow: hidden; margin: 0 auto 24px; background: var(--bg-alt); }
+    .avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .avatar .placeholder { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 48px; color: var(--ink-soft); }
+    .name { font-size: 28px; font-weight: 700; margin-bottom: 8px; font-family: "Noto Serif SC", serif; }
+    .title { color: var(--ink-soft); font-size: 16px; }
+    .department { color: var(--ink-soft); font-size: 14px; margin-top: 4px; }
+
+    /* 联系方式 */
+    .contact-grid { display: grid; grid-template-columns: repeat(3, 1fr); border-bottom: 1px solid var(--line); }
+    .contact-item { padding: 24px; text-align: center; border-right: 1px solid var(--line); transition: background 0.2s; }
+    .contact-item:last-child { border-right: none; }
+    .contact-item:hover { background: var(--bg-alt); }
+    .contact-icon { font-size: 24px; margin-bottom: 8px; }
+    .contact-label { color: var(--ink-soft); font-size: 12px; margin-bottom: 4px; }
+    .contact-value { font-size: 14px; }
+    .contact-link { color: var(--ink); text-decoration: none; transition: color 0.2s; }
+    .contact-link:hover { color: var(--accent); }
+
+    /* 个人简介 */
+    .bio-section { padding: 32px 40px; }
+    .section-title { font-size: 14px; font-weight: 600; color: var(--ink-soft); margin-bottom: 16px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .bio-content { font-size: 15px; line-height: 1.8; }
+    .bio-content h1, .bio-content h2, .bio-content h3 { font-family: "Noto Serif SC", serif; margin: 24px 0 12px; }
+    .bio-content p { margin-bottom: 12px; }
+    .bio-content ul, .bio-content ol { margin-left: 24px; margin-bottom: 12px; }
+    .bio-content li { margin-bottom: 6px; }
+    .bio-content strong { font-weight: 600; }
+    .bio-content a { color: var(--accent); text-decoration: underline; }
+
+    /* 二维码区域 */
+    .qr-section { padding: 32px 40px; border-top: 1px solid var(--line); text-align: center; }
+    .qr-container { display: inline-block; background: #fff; padding: 16px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 16px; }
+    .qr-container img { width: 180px; height: 180px; display: block; }
+    .qr-hint { color: var(--ink-soft); font-size: 13px; margin-bottom: 16px; }
+    .qr-actions { display: flex; gap: 12px; justify-content: center; }
+
+    /* 弹窗 */
+    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: none; align-items: center; justify-content: center; z-index: 1000; }
+    .modal-overlay.active { display: flex; }
+    .modal { background: var(--card); border-radius: 16px; padding: 32px; max-width: 400px; width: 90%; }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+    .modal-title { font-size: 18px; font-weight: 600; }
+    .modal-close { background: none; border: none; color: var(--ink-soft); font-size: 24px; cursor: pointer; }
+    .modal-close:hover { color: var(--ink); }
+    .modal-qr { text-align: center; margin-bottom: 24px; }
+    .modal-qr img { width: 200px; height: 200px; }
+    .modal-qr p { color: var(--ink-soft); font-size: 13px; margin-top: 12px; word-break: break-all; }
+    .modal-actions { display: flex; gap: 12px; }
+    .modal-actions .btn { flex: 1; text-align: center; }
+</style>
+{% endblock %}
+
+{% block body %}
+<!-- 头部导航 -->
+<header class="header">
+    <div class="header-inner">
+        <a href="/manage/team" class="back-link">← 返回列表</a>
+        <div class="header-actions">
+            <button onclick="openQRModal()" class="btn btn-primary">生成二维码</button>
+        </div>
+    </div>
+</header>
+
+<main class="main">
+    <div class="card">
+        <!-- 头部信息 -->
+        <div class="card-header">
+            <div class="avatar">
+                {% if member.avatar_url %}
+                <img src="{{ member.avatar_url }}" alt="{{ member.name }}">
+                {% else %}
+                <div class="placeholder">{{ member.name[0] }}</div>
+                {% endif %}
+            </div>
+            <h1 class="name">{{ member.name }}</h1>
+            <p class="title">{{ member.position or '未设置职位' }}</p>
+            {% if member.department %}
+            <p class="department">{{ member.department }}</p>
+            {% endif %}
+        </div>
+
+        <!-- 联系方式 -->
+        <div class="contact-grid">
+            {% if member.email %}
+            <div class="contact-item">
+                <div class="contact-icon">📧</div>
+                <div class="contact-label">邮箱</div>
+                <div class="contact-value">
+                    <a href="mailto:{{ member.email }}" class="contact-link">{{ member.email }}</a>
+                </div>
+            </div>
+            {% endif %}
+            {% if member.phone %}
+            <div class="contact-item">
+                <div class="contact-icon">📱</div>
+                <div class="contact-label">电话</div>
+                <div class="contact-value">
+                    <a href="tel:{{ member.phone }}" class="contact-link">{{ member.phone }}</a>
+                </div>
+            </div>
+            {% endif %}
+            {% if member.wechat %}
+            <div class="contact-item">
+                <div class="contact-icon">💬</div>
+                <div class="contact-label">微信</div>
+                <div class="contact-value">
+                    <button onclick="copyWechat()" class="contact-link" style="background:none;border:none;cursor:pointer;font-size:14px;">{{ member.wechat }}</button>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- 个人简介 -->
+        {% if member.bio %}
+        <div class="bio-section">
+            <div class="section-title">个人简介</div>
+            <div class="bio-content">{{ member.bio | safe }}</div>
+        </div>
+        {% endif %}
+
+        <!-- 二维码 -->
+        <div class="qr-section">
+            <div class="section-title">名片二维码</div>
+            <div class="qr-container">
+                <img src="/api/v1/qr/team/{{ member.code }}?size=medium" alt="名片二维码">
+            </div>
+            <p class="qr-hint">扫描二维码查看名片</p>
+            <div class="qr-actions">
+                <button onclick="openQRModal()" class="btn btn-primary">查看大图</button>
+                <a href="/api/v1/qr/team/{{ member.code }}/download?size=medium" download class="btn btn-outline">下载二维码</a>
+            </div>
+        </div>
+    </div>
+</main>
+
+<!-- 二维码弹窗 -->
+<div class="modal-overlay" id="qrModal">
+    <div class="modal">
+        <div class="modal-header">
+            <h3 class="modal-title">名片二维码</h3>
+            <button class="modal-close" onclick="closeQRModal()">×</button>
+        </div>
+        <div class="modal-qr">
+            <img id="modalQRImage" src="/api/v1/qr/team/{{ member.code }}?size=large" alt="二维码">
+            <p>{{ request.base_url }}manage/member/{{ member.code }}</p>
+        </div>
+        <div class="modal-actions">
+            <a href="/api/v1/qr/team/{{ member.code }}/download?size=large" download class="btn btn-primary" style="text-align:center;">下载二维码</a>
+            <a href="/manage/member/{{ member.code }}" target="_blank" class="btn btn-outline" style="text-align:center;">预览名片</a>
+        </div>
+    </div>
+</div>
+
+<script>
+function copyWechat() {
+    navigator.clipboard.writeText('{{ member.wechat }}').then(() => {
+        alert('微信号已复制');
+    });
+}
+
+function openQRModal() {
+    document.getElementById('qrModal').classList.add('active');
+}
+
+function closeQRModal() {
+    document.getElementById('qrModal').classList.remove('active');
+}
+
+document.getElementById('qrModal').addEventListener('click', (e) => {
+    if (e.target === document.getElementById('qrModal')) closeQRModal();
+});
+</script>
+{% endblock %}

@@ -56,6 +56,16 @@ class ArticleAdmin(ModelView, model=Article):
         Article.created_at, Article.updated_at, Article.is_deleted,
         Article.author_id, Article.live_codes,
     }
+
+
+    async def delete_model(self, request, pk):
+        """重写删除方法，使用软删除。"""
+        from app.services.project_service import ProjectService
+        from app.database import async_session
+        async with async_session() as session:
+            service = ProjectService(session)
+            await service.delete(int(pk))
+            await session.commit()
     can_delete = True
     can_export = True
 
@@ -136,6 +146,16 @@ class TeamMemberAdmin(ModelView, model=TeamMember):
         status_map = {"在职": "active", "离职": "inactive"}
         data["status"] = status_map.get(data.get("status"), data.get("status", "active"))
 
+
+
+    async def delete_model(self, request, pk):
+        """重写删除方法，使用软删除。"""
+        from app.services.project_service import ProjectService
+        from app.database import async_session
+        async with async_session() as session:
+            service = ProjectService(session)
+            await service.delete(int(pk))
+            await session.commit()
     can_delete = True
 
 
@@ -210,4 +230,18 @@ class ProjectAdmin(ModelView, model=Project):
         """将表单状态转换为数据库状态。"""
         data["status"] = "active" if data.get("status") else "draft"
 
+
+
+    async def delete_model(self, request, pk):
+        """重写删除方法，使用软删除。"""
+        from app.services.project_service import ProjectService
+        from app.database import async_session
+        async with async_session() as session:
+            service = ProjectService(session)
+            await service.delete(int(pk))
+            await session.commit()
     can_delete = True
+
+    def list_query(self, request):
+        """过滤已删除的项目。"""
+        return super().list_query(request).where(Project.is_deleted == False)

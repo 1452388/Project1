@@ -21,11 +21,11 @@ async def client():
     c = httpx.AsyncClient(transport=_transport, base_url="http://test")
     # 注册
     await c.post("/api/v1/auth/register", json={
-        "username": "testuser", "password": "testpass123",
+        "username": "testuser", "password": "admin123",
     })
     # 登录
     await c.post("/api/v1/auth/login", json={
-        "username": "testuser", "password": "testpass123",
+        "username": "testuser", "password": "admin123",
     })
     return c
 

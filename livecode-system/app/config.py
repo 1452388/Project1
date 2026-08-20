@@ -22,14 +22,20 @@ IS_SERVERLESS = os.environ.get("VERCEL", "") != ""
 
 
 def normalize_database_url(value: str) -> tuple[str, bool]:
-    """兼容 Neon/Supabase 提供的 PostgreSQL 连接串。"""
-    if value.startswith("postgres://"):
-        value = "postgresql+asyncpg://" + value[len("postgres://"):]
-    elif value.startswith("postgresql://"):
-        value = "postgresql+asyncpg://" + value[len("postgresql://"):]
+    """标准化 PostgreSQL/MySQL 异步 SQLAlchemy 连接串。"""
+    replacements = {
+        "postgres://": "postgresql+asyncpg://",
+        "postgresql://": "postgresql+asyncpg://",
+        "mysql://": "mysql+asyncmy://",
+        "mysql+pymysql://": "mysql+asyncmy://",
+    }
+    for prefix, replacement in replacements.items():
+        if value.startswith(prefix):
+            value = replacement + value[len(prefix):]
+            break
 
     parts = urlsplit(value)
-    if parts.scheme != "postgresql+asyncpg":
+    if parts.scheme not in {"postgresql+asyncpg", "mysql+asyncmy"}:
         return value, False
 
     query = dict(parse_qsl(parts.query, keep_blank_values=True))
@@ -85,7 +91,7 @@ class Settings(BaseSettings):
     R2_PUBLIC_URL: str = ""  # 自定义域名，如 https://cdn.example.com
 
     # --- 站点 ---
-    BASE_URL: str = "https://www.hxy820.uno"
+    BASE_URL: str = "http://localhost:8000"
 
     # --- 二维码默认配置 ---
     QR_DEFAULT_SIZE: str = "medium"
@@ -110,11 +116,9 @@ class Settings(BaseSettings):
 settings = Settings()
 settings.DATABASE_URL, settings.DATABASE_SSL = normalize_database_url(settings.DATABASE_URL)
 
-# Vercel 的项目目录是只读的，SQLite 无法用于生产写入。
 if IS_SERVERLESS and settings.DATABASE_URL.startswith("sqlite"):
     raise RuntimeError(
-        "生产环境必须配置 PostgreSQL：请设置 DATABASE_URL，"
-        "不能在 Vercel 上使用 SQLite。"
+        "生产环境必须配置 MySQL 或 PostgreSQL：不能在只读的 Serverless 文件系统上使用 SQLite。"
     )
 
 settings.ensure_dirs()

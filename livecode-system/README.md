@@ -65,7 +65,7 @@ livecode-system/
 ## 技术栈
 
 - **后端**：FastAPI + SQLAlchemy (async)
-- **数据库**：SQLite（第一版）/ PostgreSQL（可升级）
+- **数据库**：SQLite（本地开发）/ PostgreSQL / MySQL（生产环境）
 - **前端**：Tailwind CSS + HTMX + Quill
 - **后台管理**：SQLAdmin
 - **二维码**：qrcode + Pillow
@@ -96,6 +96,20 @@ DATABASE_URL=postgresql+asyncpg://user:password@host:5432/livecode_db
 ```
 
 配置后执行 `alembic upgrade head` 创建数据表，再重新部署应用。
+
+### 腾讯云 MySQL 部署
+
+在腾讯云 MySQL 创建数据库和账号后，将连接串配置为：
+
+```text
+DATABASE_URL=mysql+asyncmy://用户名:密码@数据库地址:3306/数据库名
+```
+
+也支持数据库服务商提供的 `mysql://` 或 `mysql+pymysql://` 格式，应用会自动转换为异步驱动格式。配置完成后执行：
+
+```bash
+alembic upgrade head
+```
 
 ## 开发说明
 

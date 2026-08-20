@@ -45,6 +45,10 @@ def upgrade() -> None:
             """
         ), {"project_id": project_id, "canonical_id": canonical_id})
 
+    if connection.dialect.name == "mysql":
+        # MySQL 没有可移植的条件唯一索引；业务层已保证每个项目只有一个有效活码。
+        return
+
     op.create_index(
         "uq_live_codes_active_project",
         "live_codes",

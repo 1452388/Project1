@@ -9,17 +9,17 @@ from sqlalchemy.orm import DeclarativeBase
 from app.config import settings
 
 # 根据数据库类型配置连接池
-_is_postgres = settings.DATABASE_URL.startswith("postgresql")
+_is_postgres = settings.DATABASE_URL.startswith("postgresql+")
+_is_mysql = settings.DATABASE_URL.startswith("mysql+")
 
 engine = create_async_engine(
     settings.DATABASE_URL,
     echo=False,
     future=True,
     connect_args={"ssl": True} if settings.DATABASE_SSL else {},
-    # PostgreSQL 连接池参数
     **(
         {"pool_size": 5, "max_overflow": 10}
-        if _is_postgres
+        if _is_postgres or _is_mysql
         else {}
     ),
 )

@@ -32,7 +32,7 @@ class Settings(BaseSettings):
 
     # --- 数据库 ---
     # 开发用 SQLite；生产用 MySQL：
-    #   mysql+asyncmy://user:password@localhost:3306/livecode_db
+    #   mysql+aiomysql://user:password@localhost:3306/livecode_db
     DATABASE_URL: str = (
         f"sqlite+aiosqlite:///{(BASE_DIR / 'data' / 'livecode.db').as_posix()}"
     )

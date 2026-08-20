@@ -105,7 +105,7 @@ DATABASE_URL=postgresql+asyncpg://user:password@host:5432/livecode_db
 DATABASE_URL=mysql+asyncmy://用户名:密码@数据库地址:3306/数据库名
 ```
 
-也支持数据库服务商提供的 `mysql://` 或 `mysql+pymysql://` 格式，应用会自动转换为异步驱动格式。配置完成后执行：
+请使用 `mysql+asyncmy://` 格式，应用不会自动转换 `mysql://` 或 `mysql+pymysql://` 连接串。配置完成后执行：
 
 ```bash
 alembic upgrade head

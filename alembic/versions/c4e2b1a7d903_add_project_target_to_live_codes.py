@@ -16,18 +16,16 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    with op.batch_alter_table("live_codes") as batch_op:
-        batch_op.alter_column("article_id", existing_type=sa.Integer(), nullable=True)
-        batch_op.add_column(sa.Column("project_id", sa.Integer(), nullable=True))
-        batch_op.create_foreign_key(
-            "fk_live_codes_project_id_projects", "projects", ["project_id"], ["id"]
-        )
+    op.alter_column("live_codes", "article_id", existing_type=sa.Integer(), nullable=True)
+    op.add_column("live_codes", sa.Column("project_id", sa.Integer(), nullable=True))
+    op.create_foreign_key(
+        "fk_live_codes_project_id_projects", "live_codes", "projects", ["project_id"], ["id"]
+    )
     op.create_index("ix_live_codes_project_id", "live_codes", ["project_id"], unique=False)
 
 
 def downgrade() -> None:
     op.drop_index("ix_live_codes_project_id", table_name="live_codes")
-    with op.batch_alter_table("live_codes") as batch_op:
-        batch_op.drop_constraint("fk_live_codes_project_id_projects", type_="foreignkey")
-        batch_op.drop_column("project_id")
-        batch_op.alter_column("article_id", existing_type=sa.Integer(), nullable=False)
+    op.drop_constraint("fk_live_codes_project_id_projects", "live_codes", type_="foreignkey")
+    op.drop_column("live_codes", "project_id")
+    op.alter_column("live_codes", "article_id", existing_type=sa.Integer(), nullable=False)

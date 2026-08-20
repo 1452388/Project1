@@ -13,7 +13,7 @@ from app.admin.admin import AdminAuthBackend, ArticleAdmin, TeamMemberAdmin, Pro
 from app.api.pages import router as pages_router
 from app.api.report_pages import router as report_pages_router
 from app.api.router import api_router
-from app.config import settings, IS_SERVERLESS
+from app.config import settings
 from app.database import engine, get_session
 from app.api.dependencies import get_principal
 from app.services.stats_service import StatsService

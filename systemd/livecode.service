@@ -1,0 +1,20 @@
+# 活码管理系统 - systemd 服务
+# 放置到 /etc/systemd/system/livecode.service
+# 然后: systemctl daemon-reload && systemctl enable livecode && systemctl start livecode
+
+[Unit]
+Description=活码管理系统 (FastAPI + Uvicorn)
+After=network.target mysql.service
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+WorkingDirectory=/var/www/livecode-system
+EnvironmentFile=/var/www/livecode-system/.env
+ExecStart=/var/www/livecode-system/.venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8000 --workers 2
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

@@ -14,6 +14,7 @@ from app.services.article_service import ArticleService
 from app.services.live_code_service import LiveCodeService
 from app.services.stats_service import StatsService
 from app.services.project_service import ProjectService
+from app.services.session_service import SessionService
 
 router = APIRouter()
 templates = Jinja2Templates(directory="app/templates")
@@ -44,12 +45,6 @@ async def live_code_page(
     principal: dict | None = Depends(get_principal),
 ):
     """扫码跳转入口：活码 → 文章展示页。"""
-    if not principal:
-        raise HTTPException(
-            status_code=307,
-            headers={"Location": f"/auth/login?next=/l/{code}"},
-        )
-    require_guest_code(principal, code)
     lc_service = LiveCodeService(session)
     live_code = await lc_service.get_by_code(code)
 
@@ -100,18 +95,26 @@ async def live_code_page(
             },
         )
 
+    # 扫码页面对访客开放；后台和管理页面仍需要登录。
+    guest_token = None
+    if not principal:
+        guest_token = SessionService.create(0, "guest", guest_code=code)
+        principal = {"role": "guest", "guest_code": code}
+    require_guest_code(principal, code)
+
     # 5. 记录扫码
     await record_scan(session, live_code, request)
     await session.commit()
 
     # 6. 渲染目标展示页
     if project:
-        return templates.TemplateResponse(
+        response = templates.TemplateResponse(
             request,
             "admin/project_detail.html",
             {"request": request, "project": project, "live_code": live_code},
         )
-    return templates.TemplateResponse(
+    else:
+        response = templates.TemplateResponse(
         request,
         "article/view.html",
         {
@@ -121,3 +124,12 @@ async def live_code_page(
             "page_url": f"{settings.BASE_URL}/l/{live_code.code}",
         },
     )
+    if guest_token:
+        response.set_cookie(
+            SessionService.cookie_name,
+            guest_token,
+            max_age=SessionService.max_age,
+            httponly=True,
+            samesite="lax",
+        )
+    return response

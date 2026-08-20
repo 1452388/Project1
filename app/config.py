@@ -2,22 +2,17 @@
 """应用配置。
 
 环境变量（通过 .env 或系统环境变量）：
-  DATABASE_URL    数据库连接字符串（默认 SQLite）
-  STORAGE_BACKEND 存储后端：local / r2
-  UPLOAD_DIR      上传文件根目录（local 模式）
+  DATABASE_URL    数据库连接字符串（默认 SQLite，生产用 MySQL）
+  UPLOAD_DIR      上传文件根目录
   BASE_URL        站点基础 URL（生成二维码内容用 /l/{code} 前缀）
 """
 
-import os
 from pathlib import Path
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 # 项目根目录（config.py 所在目录的上一级）
 BASE_DIR = Path(__file__).resolve().parent.parent
-
-# 判断是否在 Vercel 等只读环境
-IS_SERVERLESS = os.environ.get("VERCEL", "") != ""
 
 
 class Settings(BaseSettings):
@@ -36,14 +31,13 @@ class Settings(BaseSettings):
     SUPPORT_EMAIL: str = "xich19003@gmail.com"
 
     # --- 数据库 ---
+    # 开发用 SQLite；生产用 MySQL：
+    #   mysql+asyncmy://user:password@localhost:3306/livecode_db
     DATABASE_URL: str = (
         f"sqlite+aiosqlite:///{(BASE_DIR / 'data' / 'livecode.db').as_posix()}"
     )
 
-    # --- 存储后端：local / r2 ---
-    STORAGE_BACKEND: str = "local"
-
-    # --- 本地上传（STORAGE_BACKEND=local 时使用）---
+    # --- 上传 ---
     UPLOAD_DIR: Path = BASE_DIR / "uploads"
     IMAGE_DIR: Path = BASE_DIR / "uploads" / "images"
     LOGO_DIR: Path = BASE_DIR / "uploads" / "logo"
@@ -51,14 +45,8 @@ class Settings(BaseSettings):
     MAX_FILE_SIZE: int = 50 * 1024 * 1024  # 50MB
     ALLOWED_IMAGE_TYPES: set[str] = {"image/jpeg", "image/png", "image/webp", "image/gif"}
 
-    # --- Cloudflare R2（STORAGE_BACKEND=r2 时使用）---
-    R2_ACCOUNT_ID: str = ""
-    R2_ACCESS_KEY_ID: str = ""
-    R2_SECRET_ACCESS_KEY: str = ""
-    R2_BUCKET_NAME: str = ""
-    R2_PUBLIC_URL: str = ""  # 自定义域名，如 https://cdn.example.com
-
     # --- 站点 ---
+    # 扫码跳转时生成的二维码内容为 {BASE_URL}/l/{code}
     BASE_URL: str = "http://localhost:8000"
 
     # --- 二维码默认配置 ---
@@ -68,17 +56,15 @@ class Settings(BaseSettings):
     # --- 活码 ---
     LIVE_CODE_LENGTH: int = 8
 
-    # 上传目录自动创建（只读环境下跳过）
+    # 上传目录自动创建
     def ensure_dirs(self) -> None:
-        if IS_SERVERLESS:
-            return
         try:
             self.UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
             self.IMAGE_DIR.mkdir(parents=True, exist_ok=True)
             self.LOGO_DIR.mkdir(parents=True, exist_ok=True)
             (BASE_DIR / "data").mkdir(parents=True, exist_ok=True)
         except OSError:
-            pass  # 只读文件系统，忽略
+            pass
 
 
 settings = Settings()

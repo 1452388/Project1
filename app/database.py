@@ -9,18 +9,22 @@ from sqlalchemy.orm import DeclarativeBase
 from app.config import settings
 
 # 根据数据库类型配置连接池
-_is_postgres = settings.DATABASE_URL.startswith("postgresql")
+_is_postgres = settings.DATABASE_URL.startswith("postgresql+")
+_is_mysql = settings.DATABASE_URL.startswith("mysql+")
+
+_engine_kwargs: dict = {}
+if _is_postgres or _is_mysql:
+    _engine_kwargs["pool_size"] = 5
+    _engine_kwargs["max_overflow"] = 10
+elif settings.DATABASE_URL.startswith("sqlite"):
+    from sqlalchemy.pool import StaticPool
+    _engine_kwargs["poolclass"] = StaticPool
 
 engine = create_async_engine(
     settings.DATABASE_URL,
     echo=False,
     future=True,
-    # PostgreSQL 连接池参数
-    **(
-        {"pool_size": 5, "max_overflow": 10}
-        if _is_postgres
-        else {}
-    ),
+    **_engine_kwargs,
 )
 
 # Session 工厂

@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+{% block title %}上传照片 - {{ member.name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root { --bg: #ffffff; --bg-alt: #f8f9fa; --card: #ffffff; --ink: #1a1a1a; --ink-soft: #666666; --line: #e5e5e5; }
+    [data-theme="dark"] { --bg: #0a0a0a; --bg-alt: #111111; --card: #141414; --ink: #f0f0f0; --ink-soft: #888888; --line: #222222; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--ink); font-family: "Noto Sans SC", sans-serif; line-height: 1.6; }
+    a { color: inherit; text-decoration: none; }
+    .header { background: var(--bg); border-bottom: 1px solid var(--line); padding: 20px; }
+    .header-inner { max-width: 800px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
+    .logo { font-size: 18px; font-weight: 700; }
+    .nav { display: flex; gap: 20px; }
+    .nav a { color: var(--ink-soft); font-size: 14px; }
+    .nav a:hover { color: var(--ink); }
+    .main { max-width: 600px; margin: 0 auto; padding: 40px 24px; }
+    .page-title { font-size: 24px; font-weight: 700; margin-bottom: 8px; text-align: center; }
+    .page-subtitle { color: var(--ink-soft); font-size: 14px; margin-bottom: 32px; text-align: center; }
+    .upload-card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 40px; }
+    .avatar-preview { width: 200px; height: 200px; border-radius: 50%; overflow: hidden; margin: 0 auto 24px; background: var(--bg-alt); display: flex; align-items: center; justify-content: center; }
+    .avatar-preview img { width: 100%; height: 100%; object-fit: cover; }
+    .avatar-preview .placeholder { font-size: 64px; color: var(--ink-soft); }
+    .upload-area { border: 2px dashed var(--line); border-radius: 12px; padding: 32px; text-align: center; cursor: pointer; transition: all 0.2s; margin-bottom: 20px; }
+    .upload-area:hover { border-color: var(--ink-soft); background: var(--bg-alt); }
+    .upload-area-icon { font-size: 48px; margin-bottom: 12px; }
+    .upload-area-text { color: var(--ink-soft); font-size: 14px; }
+    .upload-area-hint { color: var(--ink-soft); font-size: 12px; margin-top: 8px; }
+    .btn { padding: 12px 24px; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; border: none; transition: all 0.2s; width: 100%; }
+    .btn-primary { background: var(--ink); color: var(--bg); }
+    .btn-primary:hover { opacity: 0.9; }
+    .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+    .btn-outline { background: transparent; border: 1px solid var(--line); color: var(--ink); display: block; text-align: center; margin-top: 12px; }
+    .btn-outline:hover { border-color: var(--ink); }
+    .preview-desc { color: var(--ink-soft); font-size: 13px; margin-top: 8px; }
+    .success-message { color: #2e7d32; font-size: 14px; text-align: center; padding: 12px; background: #e8f5e9; border-radius: 8px; margin-bottom: 16px; }
+    [data-theme="dark"] .success-message { background: #1b3a1b; color: #66bb6a; }
+</style>
+{% endblock %}
+
+{% block body %}
+<header class="header">
+    <div class="header-inner">
+        <a href="/" class="logo">活码管理系统</a>
+        <nav class="nav">
+            <a href="/manage/team" class="nav-link active">人员管理</a>
+            <a href="/manage/projects" class="nav-link">项目管理</a>
+            <a href="/" class="nav-link">首页</a>
+        </nav>
+    </div>
+</header>
+
+<main class="main">
+    <h1 class="page-title">上传照片</h1>
+    <p class="page-subtitle">{{ member.name }} · {{ member.position or '未设置职位' }}</p>
+
+    <div class="upload-card">
+        <div class="avatar-preview" id="avatarPreview">
+            {% if member.avatar_url %}
+            <img src="{{ member.avatar_url }}" alt="{{ member.name }}">
+            {% else %}
+            <div class="placeholder">📷</div>
+            {% endif %}
+        </div>
+
+        {% if success %}
+        <div class="success-message">✅ 照片上传成功！</div>
+        {% endif %}
+
+        <form method="post" enctype="multipart/form-data" id="uploadForm">
+            <div class="upload-area" id="uploadArea" onclick="document.getElementById('fileInput').click()">
+                <div class="upload-area-icon">📷</div>
+                <div class="upload-area-text" id="uploadText">点击选择照片</div>
+                <div class="upload-area-hint" id="uploadHint">支持 JPG、PNG、WebP，最大 10MB</div>
+            </div>
+            <input type="file" id="fileInput" name="file" accept="image/*" style="display:none;" required>
+
+            <div id="previewSection" style="display:none; margin-bottom: 16px; text-align: center;">
+                <img id="previewImage" style="max-width: 200px; max-height: 200px; border-radius: 12px; border: 1px solid var(--line);">
+                <div class="preview-desc" id="fileName"></div>
+            </div>
+
+            <button type="submit" class="btn btn-primary" id="submitBtn">上传照片</button>
+        </form>
+
+        <a href="/manage/team/{{ member.code }}" class="btn btn-outline">返回详情</a>
+    </div>
+</main>
+
+<script>
+document.getElementById('fileInput').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    document.getElementById('uploadText').textContent = file.name;
+    document.getElementById('uploadHint').textContent = (file.size / 1024).toFixed(1) + ' KB';
+    document.getElementById('previewSection').style.display = 'block';
+    document.getElementById('fileName').textContent = file.name;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        document.getElementById('previewImage').src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+});
+
+document.getElementById('uploadForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const file = document.getElementById('fileInput').files[0];
+    if (!file) return;
+    const formData = new FormData();
+    formData.append('file', file);
+    document.getElementById('submitBtn').disabled = true;
+    document.getElementById('submitBtn').textContent = '上传中...';
+    try {
+        const resp = await fetch('/api/v1/team/{{ member.id }}/avatar', {
+            method: 'POST',
+            body: formData
+        });
+        const data = await resp.json();
+        if (resp.ok) {
+            document.getElementById('avatarPreview').innerHTML = '<img src="' + data.头像地址 + '?t=' + Date.now() + '" alt="{{ member.name }}">';
+            document.getElementById('submitBtn').textContent = '✅ 上传成功';
+            setTimeout(() => {
+                window.location.href = '/manage/team/{{ member.code }}';
+            }, 1500);
+        } else {
+            alert('上传失败：' + (data.detail || '未知错误'));
+            document.getElementById('submitBtn').disabled = false;
+            document.getElementById('submitBtn').textContent = '上传照片';
+        }
+    } catch (err) {
+        alert('上传失败：网络错误');
+        document.getElementById('submitBtn').disabled = false;
+        document.getElementById('submitBtn').textContent = '上传照片';
+    }
+});
+</script>
+{% endblock %}

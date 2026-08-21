@@ -54,6 +54,27 @@ async def team_detail(
     })
 
 
+@router.get("/team/{member_key}/upload-photo", response_class=HTMLResponse)
+async def team_upload_photo(
+    request: Request,
+    member_key: str,
+    session: AsyncSession = Depends(get_session),
+    principal: dict = Depends(require_registered_user),
+):
+    """成员照片上传页。"""
+    service = TeamMemberService(session)
+    member = await service.get_by_code_for_manage(member_key)
+    if not member and member_key.isdigit():
+        member = await service.get(int(member_key))
+    if not member:
+        return templates.TemplateResponse(request, "pages/notice.html", {
+            "request": request, "title": "成员不存在", "icon": "❓",
+        })
+    return templates.TemplateResponse(request, "admin/team_upload_photo.html", {
+        "member": member,
+    })
+
+
 # ===== 扫码跳转的公开名片页 =====
 
 @router.get("/member/{code}", response_class=HTMLResponse)

@@ -118,7 +118,7 @@
                 <div class="placeholder">{{ member.name[0] }}</div>
                 {% endif %}
                 <input type="file" id="avatarFileInput" accept="image/*" style="display:none;">
-                <button onclick="document.getElementById('avatarFileInput').click()" class="btn btn-outline" style="font-size:12px;padding:4px 12px;margin-top:8px;">上传头像</button>
+                <button onclick="document.getElementById('avatarFileInput').click()" class="btn btn-outline avatar-upload-btn">📷 上传照片</button>
             </div>
             <h1 class="name">{{ member.name }}</h1>
             <p class="title">{{ member.position or '未设置职位' }}</p>

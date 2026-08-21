@@ -1,18 +1,47 @@
 # -*- coding: utf-8 -*-
 """人员信息 API 路由。"""
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_session
 from app.api.dependencies import require_registered_user
 from app.schemas.team import TeamMemberCreate, TeamMemberUpdate
 from app.services.team_service import TeamMemberService
+from app.services.upload_service import UploadService
 
 router = APIRouter(dependencies=[Depends(require_registered_user)])
 
 
 # ===== 查询端点 =====
+
+
+@router.get("/search")
+async def search_members_by_name(
+    name: str = Query(..., description="按姓名查询（支持模糊搜索）"),
+    status: str | None = Query(None, description="状态（active/inactive）"),
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=100),
+    session: AsyncSession = Depends(get_session),
+):
+    """按姓名搜索人员（模糊匹配）。"""
+    service = TeamMemberService(session)
+    # 复用 list 的 search 参数搜索所有可用字段（含姓名）
+    members, total = await service.list(
+        search=name, status=status, page=page, page_size=page_size,
+    )
+    return {
+        "列表": [
+            {
+                "会员编号": m.id, "姓名": m.name, "职位": m.position,
+                "部门": m.department, "邮箱": m.email, "电话": m.phone,
+                "微信": m.wechat, "头像地址": m.avatar_url, "活码ID": m.code,
+                "状态": m.status,
+            }
+            for m in members
+        ],
+        "总数": total, "当前页": page, "每页条数": page_size,
+    }
 
 
 @router.get("")
@@ -157,3 +186,23 @@ async def toggle_member_status(
         "会员编号": member.id, "姓名": member.name, "状态": member.status,
         "消息": f"已切换为{'在职' if member.status == 'active' else '离职'}",
     }
+
+
+@router.post("/{member_id}/avatar")
+async def upload_member_avatar(
+    member_id: int,
+    file: UploadFile = File(...),
+    session: AsyncSession = Depends(get_session),
+):
+    """上传人员头像。"""
+    try:
+        url = await UploadService.save_image(file)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+    service = TeamMemberService(session)
+    member = await service.update(member_id, {"avatar_url": url})
+    if not member:
+        raise HTTPException(status_code=404, detail="成员不存在")
+    await session.commit()
+    return {"消息": "头像上传成功", "头像地址": url}

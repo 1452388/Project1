@@ -31,6 +31,11 @@ class TeamMember(BaseModel):
     wechat: Mapped[str | None] = mapped_column(String(100), nullable=True)
     avatar_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
     bio: Mapped[str | None] = mapped_column(Text, nullable=True)
+    # 工地名片扩展字段
+    age: Mapped[str | None] = mapped_column(String(20), nullable=True, default=None)
+    section: Mapped[str | None] = mapped_column(String(100), nullable=True, default=None)
+    post: Mapped[str | None] = mapped_column(String(100), nullable=True, default=None)
+    id_card: Mapped[str | None] = mapped_column(String(30), nullable=True, default=None)
     # 活码ID（用于名片页跳转）
     code: Mapped[str] = mapped_column(
         String(16), unique=True, nullable=False, index=True,

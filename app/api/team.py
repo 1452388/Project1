@@ -26,7 +26,6 @@ async def search_members_by_name(
 ):
     """按姓名搜索人员（模糊匹配）。"""
     service = TeamMemberService(session)
-    # 复用 list 的 search 参数搜索所有可用字段（含姓名）
     members, total = await service.list(
         search=name, status=status, page=page, page_size=page_size,
     )
@@ -63,6 +62,7 @@ async def list_members(
                 "会员编号": m.id, "姓名": m.name, "职位": m.position,
                 "部门": m.department, "邮箱": m.email, "电话": m.phone,
                 "微信": m.wechat, "头像地址": m.avatar_url, "个人简介": m.bio,
+                "年龄": m.age, "标段": m.section, "岗位": m.post, "身份证号": m.id_card,
                 "活码ID": m.code, "状态": m.status,
                 "创建时间": m.created_at.isoformat(),
                 "更新时间": m.updated_at.isoformat(),
@@ -88,6 +88,8 @@ async def get_member(
         "会员编号": member.id, "姓名": member.name, "职位": member.position,
         "部门": member.department, "邮箱": member.email, "电话": member.phone,
         "微信": member.wechat, "头像地址": member.avatar_url, "个人简介": member.bio,
+        "年龄": member.age, "标段": member.section, "岗位": member.post,
+        "身份证号": member.id_card,
         "活码ID": member.code, "状态": member.status,
         "设置了编辑密码": member.edit_password_hash is not None,
         "创建时间": member.created_at.isoformat(),
@@ -109,6 +111,8 @@ async def get_member_by_code(
         "会员编号": member.id, "姓名": member.name, "职位": member.position,
         "部门": member.department, "邮箱": member.email, "电话": member.phone,
         "微信": member.wechat, "头像地址": member.avatar_url, "个人简介": member.bio,
+        "年龄": member.age, "标段": member.section, "岗位": member.post,
+        "身份证号": member.id_card,
         "活码ID": member.code, "状态": member.status,
     }
 
@@ -129,6 +133,8 @@ async def create_member(
         "会员编号": member.id, "姓名": member.name, "职位": member.position,
         "部门": member.department, "邮箱": member.email, "电话": member.phone,
         "微信": member.wechat, "头像地址": member.avatar_url, "个人简介": member.bio,
+        "年龄": member.age, "标段": member.section, "岗位": member.post,
+        "身份证号": member.id_card,
         "活码ID": member.code, "状态": member.status,
         "创建时间": member.created_at.isoformat(),
         "更新时间": member.updated_at.isoformat(),
@@ -151,6 +157,8 @@ async def update_member(
         "会员编号": member.id, "姓名": member.name, "职位": member.position,
         "部门": member.department, "邮箱": member.email, "电话": member.phone,
         "微信": member.wechat, "头像地址": member.avatar_url, "个人简介": member.bio,
+        "年龄": member.age, "标段": member.section, "岗位": member.post,
+        "身份证号": member.id_card,
         "活码ID": member.code, "状态": member.status,
         "创建时间": member.created_at.isoformat(),
         "更新时间": member.updated_at.isoformat(),

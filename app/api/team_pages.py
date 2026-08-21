@@ -50,6 +50,7 @@ async def team_detail(
         })
     return templates.TemplateResponse(request, "admin/team_detail.html", {
         "member": member, "page_url": f"{request.base_url}team/{member.code}",
+        "member_id": member.id,
     })
 
 
